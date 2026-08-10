@@ -15,9 +15,11 @@ class StoreController extends Controller
         $validated = $request->validate([
             'keyword' => ['nullable', 'string', 'max:100'],
             'reservation_available' => ['nullable', 'boolean'],
+            'tag' => ['nullable', 'string', 'max:100'],
         ]);
 
         $stores = Store::query()
+            ->with('tags:id,store_id,name,slug')
             ->where('is_active', true)
             ->when($validated['keyword'] ?? null, function (Builder $query, string $keyword) {
                 $query->where(function (Builder $query) use ($keyword) {
@@ -26,6 +28,10 @@ class StoreController extends Controller
                         ->orWhere('detail_address', 'like', "%{$keyword}%");
                 });
             })
+            ->when($validated['tag'] ?? null, fn (Builder $query, string $tag) => $query->whereHas(
+                'tags',
+                fn (Builder $tags) => $tags->where('slug', $tag)->orWhere('name', $tag),
+            ))
             ->when($request->boolean('reservation_available'), fn (Builder $query) => $query->where('reservation_enabled', true))
             ->orderBy('id')
             ->get();
@@ -43,6 +49,7 @@ class StoreController extends Controller
             'closures' => fn ($query) => $query->whereDate('closure_date', '>=', today())->orderBy('closure_date'),
             'seats' => fn ($query) => $query->where('is_active', true)->orderBy('floor_number')->orderBy('seat_code'),
             'menuCategories.menus' => fn ($query) => $query->where('is_available', true),
+            'tags:id,store_id,name,slug',
         ]);
 
         return response()->json([

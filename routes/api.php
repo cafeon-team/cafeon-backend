@@ -1,13 +1,18 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BenefitController;
 use App\Http\Controllers\Api\CommentController;
-use App\Http\Controllers\Api\PostLikeController;
-use App\Http\Controllers\Api\OwnerDashboardController;
-use App\Http\Controllers\Api\StoreController;
-use App\Http\Controllers\Api\ReservationController;
-use App\Http\Controllers\Api\OwnerReservationController;
+use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\NoshowPolicyController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\OwnerDashboardController;
+use App\Http\Controllers\Api\OwnerReservationController;
+use App\Http\Controllers\Api\PostLikeController;
+use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\ReservationController;
+use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\StoreController;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +27,9 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::get('/stores', [StoreController::class, 'index']);
 Route::get('/stores/{store}', [StoreController::class, 'show']);
+Route::get('/stores/{store}/menus', [MenuController::class, 'index']);
+Route::get('/menus/{menu}', [MenuController::class, 'show']);
+Route::get('/stores/{store}/reviews', [ReviewController::class, 'index']);
 Route::get('/stores/{store}/congestion', [StoreController::class, 'availability']);
 Route::get('/stores/{store}/availability', [StoreController::class, 'availability']);
 Route::get('/stores/{store}/reservation-slots', [ReservationController::class, 'slots']);
@@ -75,6 +83,17 @@ Route::get('/posts/{post}/comments', function (Post $post) {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::put('/users/me', [ProfileController::class, 'update']);
+    Route::put('/users/me/password', [ProfileController::class, 'updatePassword']);
+    Route::get('/users/me/coupons', [BenefitController::class, 'coupons']);
+    Route::get('/users/me/membership', [BenefitController::class, 'membership']);
+    Route::post('/stores/{store}/reviews', [ReviewController::class, 'store']);
+    Route::put('/reviews/{review}', [ReviewController::class, 'update']);
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
+    Route::get('/users/me/orders', [OrderController::class, 'index']);
+    Route::post('/orders', [OrderController::class, 'store']);
+    Route::get('/users/me/orders/{order}', [OrderController::class, 'show']);
+    Route::post('/users/me/orders/{order}/cancel', [OrderController::class, 'cancel']);
     Route::get('/users/me', [AuthController::class, 'me']);
     Route::get('/users/me/reservations', [ReservationController::class, 'mine']);
     Route::get('/users/me/reservations/{reservation}', [ReservationController::class, 'showMine']);
