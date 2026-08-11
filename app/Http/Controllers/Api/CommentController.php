@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCommentRequest;
+use App\Http\Requests\UpdateCommentRequest;
+use App\Http\Resources\CommentResource;
 use App\Models\Comment;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
@@ -10,12 +13,27 @@ use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
-    public function store(Request $request, Post $post): JsonResponse
+    public function index(Post $post): JsonResponse
     {
-        $validated = $request->validate([
-            'content' => ['required', 'string', 'max:2000'],
-            'parent_id' => ['nullable', 'integer', 'exists:comments,id'],
-        ]);
+        $comments = $post->comments()
+            ->with([
+                'user:id,name',
+                'replies' => fn ($query) => $query
+                    ->where('status', 'VISIBLE')
+                    ->with('user:id,name')
+                    ->oldest(),
+            ])
+            ->whereNull('parent_id')
+            ->where('status', 'VISIBLE')
+            ->oldest()
+            ->get();
+
+        return response()->json(CommentResource::collection($comments)->resolve());
+    }
+
+    public function store(StoreCommentRequest $request, Post $post): JsonResponse
+    {
+        $validated = $request->validated();
 
         if ($post->status !== 'PUBLISHED') {
             return response()->json(['message' => 'Comments are only allowed on published posts.'], 422);
@@ -47,20 +65,18 @@ class CommentController extends Controller
             'status' => 'VISIBLE',
         ]);
 
-        return response()->json($comment->load('user:id,name'), 201);
+        return response()->json(CommentResource::make($comment->load('user:id,name'))->resolve(), 201);
     }
 
-    public function update(Request $request, Comment $comment): JsonResponse
+    public function update(UpdateCommentRequest $request, Comment $comment): JsonResponse
     {
         abort_unless($comment->user_id === $request->user()->id, 403);
 
-        $validated = $request->validate([
-            'content' => ['required', 'string', 'max:2000'],
-        ]);
+        $validated = $request->validated();
 
         $comment->update($validated);
 
-        return response()->json($comment->fresh()->load('user:id,name'));
+        return response()->json(CommentResource::make($comment->fresh()->load('user:id,name'))->resolve());
     }
 
     public function destroy(Request $request, Comment $comment): JsonResponse
@@ -69,5 +85,20 @@ class CommentController extends Controller
         $comment->delete();
 
         return response()->json(status: 204);
+    }
+
+    public function updateStatus(Request $request, Comment $comment): JsonResponse
+    {
+        $comment->loadMissing('post.store');
+        $this->authorize('manageBlog', [Post::class, $comment->post->store]);
+        $validated = $request->validate([
+            'status' => ['required', 'in:VISIBLE,HIDDEN,SPAM'],
+        ]);
+        $comment->update($validated);
+
+        return response()->json([
+            'message' => '댓글 상태를 변경했습니다.',
+            'comment' => CommentResource::make($comment->fresh())->resolve(),
+        ]);
     }
 }

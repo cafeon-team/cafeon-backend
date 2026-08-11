@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PostCategory extends Model
 {
-    protected $guarded = [];
+    protected $fillable = ['store_id', 'name', 'slug', 'description', 'sort_order', 'is_active'];
 
     protected function casts(): array
     {

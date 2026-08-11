@@ -1,0 +1,2299 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "CafeOn API",
+        "description": "CafeOn backend API documentation",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://127.0.0.1:8001",
+            "description": "Local development server"
+        }
+    ],
+    "paths": {
+        "/api/admin/faqs": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "FrontendFeatureController storeFaq",
+                "operationId": "post_api_admin_faqs",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/faqs/{faq}": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "FrontendFeatureController updateFaq",
+                "operationId": "put_api_admin_faqs_faq_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "faq",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "FrontendFeatureController deleteFaq",
+                "operationId": "delete_api_admin_faqs_faq_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "faq",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/inquiries/{inquiry}/answer": {
+            "patch": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "FrontendFeatureController answerInquiry",
+                "operationId": "patch_api_admin_inquiries_inquiry_answer",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "inquiry",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "AuthController login",
+                "operationId": "post_api_auth_login",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                }
+            }
+        },
+        "/api/auth/signup": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "AuthController register",
+                "operationId": "post_api_auth_signup",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                }
+            }
+        },
+        "/api/comments/{comment}": {
+            "put": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "CommentController update",
+                "operationId": "put_api_comments_comment_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "comment",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "CommentController destroy",
+                "operationId": "delete_api_comments_comment_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "comment",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/comments/{comment}/status": {
+            "patch": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "CommentController updateStatus",
+                "operationId": "patch_api_comments_comment_status",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "comment",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/faqs": {
+            "get": {
+                "tags": [
+                    "Faqs"
+                ],
+                "summary": "FrontendFeatureController faqs",
+                "operationId": "get_api_faqs",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                }
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Login"
+                ],
+                "summary": "AuthController login",
+                "operationId": "post_api_login",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Logout"
+                ],
+                "summary": "AuthController logout",
+                "operationId": "post_api_logout",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/me": {
+            "get": {
+                "tags": [
+                    "Me"
+                ],
+                "summary": "AuthController me",
+                "operationId": "get_api_me",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/menus/{menu}": {
+            "get": {
+                "tags": [
+                    "Menus"
+                ],
+                "summary": "MenuController show",
+                "operationId": "get_api_menus_menu_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "menu",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ]
+            }
+        },
+        "/api/oauth2-callback": {
+            "get": {
+                "tags": [
+                    "Oauth2-callback"
+                ],
+                "summary": "SwaggerController oauth2Callback",
+                "operationId": "get_api_oauth2_callback",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                }
+            }
+        },
+        "/api/orders": {
+            "post": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "OrderController store",
+                "operationId": "post_api_orders",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/stores/{store}/dashboard": {
+            "get": {
+                "tags": [
+                    "Owner"
+                ],
+                "summary": "OwnerDashboardController show",
+                "operationId": "get_api_owner_stores_store_dashboard",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/post-categories/{category}": {
+            "put": {
+                "tags": [
+                    "Post-categories"
+                ],
+                "summary": "BlogTaxonomyController updateCategory",
+                "operationId": "put_api_post_categories_category_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Post-categories"
+                ],
+                "summary": "BlogTaxonomyController destroyCategory",
+                "operationId": "delete_api_post_categories_category_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/posts": {
+            "get": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "PostApiController index",
+                "operationId": "get_api_posts",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "PostApiController store",
+                "operationId": "post_api_posts",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/posts/{post}": {
+            "put": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "PostApiController update",
+                "operationId": "put_api_posts_post_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "post",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "PostApiController destroy",
+                "operationId": "delete_api_posts_post_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "post",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/posts/{post}/comments": {
+            "get": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "CommentController index",
+                "operationId": "get_api_posts_post_comments",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "post",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "CommentController store",
+                "operationId": "post_api_posts_post_comments",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "post",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/posts/{post}/likes": {
+            "post": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "PostLikeController store",
+                "operationId": "post_api_posts_post_likes",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "post",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "PostLikeController destroy",
+                "operationId": "delete_api_posts_post_likes",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "post",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/posts/{slug}": {
+            "get": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "PostApiController show",
+                "operationId": "get_api_posts_slug_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ]
+            }
+        },
+        "/api/recommendations/stores": {
+            "get": {
+                "tags": [
+                    "Recommendations"
+                ],
+                "summary": "FrontendFeatureController recommendations",
+                "operationId": "get_api_recommendations_stores",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                }
+            }
+        },
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Register"
+                ],
+                "summary": "AuthController register",
+                "operationId": "post_api_register",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                }
+            }
+        },
+        "/api/reservations": {
+            "post": {
+                "tags": [
+                    "Reservations"
+                ],
+                "summary": "ReservationController storeFromPayload",
+                "operationId": "post_api_reservations",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/reservations/{reservation}/status": {
+            "patch": {
+                "tags": [
+                    "Reservations"
+                ],
+                "summary": "OwnerReservationController updateStatus",
+                "operationId": "patch_api_reservations_reservation_status",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "reservation",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/reviews/{review}": {
+            "put": {
+                "tags": [
+                    "Reviews"
+                ],
+                "summary": "ReviewController update",
+                "operationId": "put_api_reviews_review_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "review",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Reviews"
+                ],
+                "summary": "ReviewController destroy",
+                "operationId": "delete_api_reviews_review_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "review",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stores": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "Store list",
+                "operationId": "c4638e8aa5727048d9e74e129ad04a00",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/api/stores/{store}": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "StoreController show",
+                "operationId": "get_api_stores_store_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ]
+            }
+        },
+        "/api/stores/{store}/availability": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "StoreController availability",
+                "operationId": "get_api_stores_store_availability",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ]
+            }
+        },
+        "/api/stores/{store}/congestion": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "StoreController availability",
+                "operationId": "get_api_stores_store_congestion",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ]
+            }
+        },
+        "/api/stores/{store}/favorite": {
+            "post": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "FrontendFeatureController favorite",
+                "operationId": "post_api_stores_store_favorite",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "FrontendFeatureController unfavorite",
+                "operationId": "delete_api_stores_store_favorite",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stores/{store}/menus": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "MenuController index",
+                "operationId": "get_api_stores_store_menus",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ]
+            }
+        },
+        "/api/stores/{store}/noshow-policy": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "NoshowPolicyController show",
+                "operationId": "get_api_stores_store_noshow_policy",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "NoshowPolicyController update",
+                "operationId": "put_api_stores_store_noshow_policy",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stores/{store}/post-categories": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "BlogTaxonomyController categories",
+                "operationId": "get_api_stores_store_post_categories",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "BlogTaxonomyController storeCategory",
+                "operationId": "post_api_stores_store_post_categories",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stores/{store}/reservation-slots": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "ReservationController slots",
+                "operationId": "get_api_stores_store_reservation_slots",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ]
+            }
+        },
+        "/api/stores/{store}/reservations": {
+            "post": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "ReservationController store",
+                "operationId": "post_api_stores_store_reservations",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "OwnerReservationController index",
+                "operationId": "get_api_stores_store_reservations",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stores/{store}/reviews": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "ReviewController index",
+                "operationId": "get_api_stores_store_reviews",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "ReviewController store",
+                "operationId": "post_api_stores_store_reviews",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stores/{store}/tags": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "BlogTaxonomyController tags",
+                "operationId": "get_api_stores_store_tags",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "BlogTaxonomyController storeTag",
+                "operationId": "post_api_stores_store_tags",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tags/{tag}": {
+            "put": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "BlogTaxonomyController updateTag",
+                "operationId": "put_api_tags_tag_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "tag",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "BlogTaxonomyController destroyTag",
+                "operationId": "delete_api_tags_tag_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "tag",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/uploads/images": {
+            "post": {
+                "tags": [
+                    "Uploads"
+                ],
+                "summary": "ImageUploadController store",
+                "operationId": "post_api_uploads_images",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me": {
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "ProfileController update",
+                "operationId": "put_api_users_me",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "AuthController me",
+                "operationId": "get_api_users_me",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/coupons": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "BenefitController coupons",
+                "operationId": "get_api_users_me_coupons",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/favorites": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "FrontendFeatureController favorites",
+                "operationId": "get_api_users_me_favorites",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/inquiries": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "FrontendFeatureController inquiries",
+                "operationId": "get_api_users_me_inquiries",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "FrontendFeatureController storeInquiry",
+                "operationId": "post_api_users_me_inquiries",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/inquiries/{inquiry}": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "FrontendFeatureController showInquiry",
+                "operationId": "get_api_users_me_inquiries_inquiry_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "inquiry",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/membership": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "BenefitController membership",
+                "operationId": "get_api_users_me_membership",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/membership-summary": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "FrontendFeatureController membershipSummary",
+                "operationId": "get_api_users_me_membership_summary",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/orders": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "OrderController index",
+                "operationId": "get_api_users_me_orders",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/orders/{order}": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "OrderController show",
+                "operationId": "get_api_users_me_orders_order_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/orders/{order}/cancel": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "OrderController cancel",
+                "operationId": "post_api_users_me_orders_order_cancel",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/password": {
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "ProfileController updatePassword",
+                "operationId": "put_api_users_me_password",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/preferences": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "FrontendFeatureController preferences",
+                "operationId": "get_api_users_me_preferences",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "FrontendFeatureController updatePreferences",
+                "operationId": "put_api_users_me_preferences",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/referral-code": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "FrontendFeatureController referralCode",
+                "operationId": "get_api_users_me_referral_code",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/referrals/claim": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "FrontendFeatureController claimReferral",
+                "operationId": "post_api_users_me_referrals_claim",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/reservations": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "ReservationController mine",
+                "operationId": "get_api_users_me_reservations",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/reservations/{reservation}": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "ReservationController showMine",
+                "operationId": "get_api_users_me_reservations_reservation_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "reservation",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "ReservationController cancelMine",
+                "operationId": "delete_api_users_me_reservations_reservation_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "reservation",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "bearerFormat": "Token",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Stores",
+            "description": "Stores"
+        }
+    ]
+}

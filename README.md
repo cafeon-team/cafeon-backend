@@ -1,3 +1,11 @@
+# CafeON Backend
+
+- MVC/API 테스트 화면: `/test/mvc/blog-api` (`APP_ENV=local` 전용)
+- Swagger UI: `/api/documentation`
+- 전체 라우트 Swagger 생성: `php artisan swagger:generate-routes`
+- 로컬 예약 발행: `php artisan schedule:work`
+- 운영 Scheduler 설정: [docs/DEPLOYMENT_SCHEDULER.md](docs/DEPLOYMENT_SCHEDULER.md)
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">

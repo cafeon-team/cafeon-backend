@@ -12,7 +12,20 @@ class Post extends Model
 {
     use SoftDeletes;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'store_id',
+        'category_id',
+        'author_id',
+        'title',
+        'slug',
+        'summary',
+        'content',
+        'thumbnail_url',
+        'status',
+        'view_count',
+        'scheduled_at',
+        'published_at',
+    ];
 
     protected function casts(): array
     {

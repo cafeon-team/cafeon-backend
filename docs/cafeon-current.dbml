@@ -1,0 +1,847 @@
+// CafeON current database schema
+// Generated from MySQL database: cafeon
+// Import this file at https://dbdiagram.io
+
+Project CafeON {
+  database_type: 'MySQL'
+  Note: 'CafeON Laravel backend current schema'
+}
+
+// ==================== CafeON domain tables ====================
+
+Table `comments` {
+  `id` bigint [pk, increment, not null]
+  `post_id` bigint [not null]
+  `user_id` bigint [not null]
+  `parent_id` bigint
+  `content` text [not null]
+  `status` varchar(20) [not null, default: 'VISIBLE']
+  `created_at` timestamp
+  `updated_at` timestamp
+  `deleted_at` timestamp
+
+  indexes {
+    (`parent_id`)
+    (`post_id`, `status`, `created_at`)
+    (`user_id`, `created_at`)
+  }
+}
+
+Table `coupons` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `created_by` bigint [not null]
+  `name` varchar(100) [not null]
+  `description` varchar(500)
+  `discount_type` varchar(30) [not null, note: 'enum(FIXED,PERCENT,FREE_ITEM)']
+  `discount_value` decimal(12,2) [not null, default: 0.00]
+  `minimum_order_amount` decimal(12,2) [not null, default: 0.00]
+  `maximum_discount_amount` decimal(12,2)
+  `free_menu_id` bigint
+  `valid_from` timestamp [not null]
+  `valid_until` timestamp [not null]
+  `total_quantity` int
+  `issued_quantity` int [not null, default: 0]
+  `per_user_limit` int [not null, default: 1]
+  `is_active` boolean [not null, default: 1]
+  `created_at` timestamp
+  `updated_at` timestamp
+  `deleted_at` timestamp
+
+  indexes {
+    (`created_by`)
+    (`free_menu_id`)
+    (`store_id`, `is_active`, `valid_until`)
+  }
+}
+
+Table `customer_inquiries` {
+  `id` bigint [pk, increment, not null]
+  `user_id` bigint [not null]
+  `category` varchar(50) [not null]
+  `title` varchar(255) [not null]
+  `content` text [not null]
+  `status` varchar(30) [not null, default: 'PENDING', note: 'enum(PENDING,ANSWERED,CLOSED)']
+  `answer` text
+  `answered_by` bigint
+  `answered_at` timestamp
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`answered_by`)
+    (`user_id`, `status`)
+  }
+}
+
+Table `customer_store_accounts` {
+  `id` bigint [pk, increment, not null]
+  `user_id` bigint [not null]
+  `store_id` bigint [not null]
+  `point_balance` int [not null, default: 0]
+  `total_earned_points` int [not null, default: 0]
+  `visit_count` int [not null, default: 0]
+  `purchase_count` int [not null, default: 0]
+  `total_purchase_amount` decimal(14,2) [not null, default: 0.00]
+  `first_visited_at` timestamp
+  `last_visited_at` timestamp
+  `last_purchased_at` timestamp
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`store_id`, `point_balance`)
+    (`store_id`, `total_purchase_amount`)
+    (`store_id`, `visit_count`)
+    (`user_id`, `store_id`) [unique]
+  }
+}
+
+Table `customer_visits` {
+  `id` bigint [pk, increment, not null]
+  `user_id` bigint [not null]
+  `store_id` bigint [not null]
+  `reservation_id` bigint
+  `order_id` bigint
+  `type` varchar(30) [not null, note: 'enum(RESERVATION,PURCHASE,CHECK_IN)']
+  `visited_at` timestamp [not null]
+  `confirmed_by` bigint
+  `points_awarded` boolean [not null, default: 0]
+  `idempotency_key` varchar(150) [not null]
+  `created_at` timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (`confirmed_by`)
+    (`idempotency_key`) [unique]
+    (`order_id`) [unique]
+    (`reservation_id`) [unique]
+    (`store_id`, `visited_at`)
+    (`user_id`, `store_id`, `visited_at`)
+  }
+}
+
+Table `faqs` {
+  `id` bigint [pk, increment, not null]
+  `category` varchar(50) [not null, default: 'GENERAL']
+  `question` varchar(255) [not null]
+  `answer` text [not null]
+  `sort_order` int [not null, default: 0]
+  `is_active` boolean [not null, default: 1]
+  `created_at` timestamp
+  `updated_at` timestamp
+}
+
+Table `inventories` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `ingredient_name` varchar(100) [not null]
+  `quantity` decimal(12,3) [not null, default: 0.000]
+  `unit` varchar(20) [not null]
+  `low_stock_threshold` decimal(12,3) [not null, default: 0.000]
+  `is_active` boolean [not null, default: 1]
+  `created_by` bigint
+  `updated_by` bigint
+  `created_at` timestamp
+  `updated_at` timestamp
+  `deleted_at` timestamp
+
+  indexes {
+    (`created_by`)
+    (`store_id`, `ingredient_name`) [unique]
+    (`store_id`, `is_active`)
+    (`updated_by`)
+  }
+}
+
+Table `inventory_transactions` {
+  `id` bigint [pk, increment, not null]
+  `inventory_id` bigint [not null]
+  `created_by` bigint
+  `type` varchar(30) [not null, note: 'enum(STOCK_IN,STOCK_OUT,ADJUSTMENT,RETURN,WASTE)']
+  `quantity` decimal(12,3) [not null]
+  `quantity_before` decimal(12,3) [not null]
+  `quantity_after` decimal(12,3) [not null]
+  `reason` varchar(255)
+  `reference_type` varchar(30)
+  `reference_id` bigint
+  `created_at` timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (`created_by`, `created_at`)
+    (`inventory_id`, `created_at`)
+    (`reference_type`, `reference_id`)
+  }
+}
+
+Table `membership_stamp_events` {
+  `id` bigint [pk, increment, not null]
+  `user_id` bigint [not null]
+  `store_id` bigint [not null]
+  `order_id` bigint
+  `amount` int [not null]
+  `reason` varchar(255)
+  `created_at` timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (`order_id`)
+    (`store_id`)
+    (`user_id`, `store_id`, `created_at`)
+  }
+}
+
+Table `menu_categories` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `name` varchar(50) [not null]
+  `sort_order` int [not null, default: 0]
+  `is_active` boolean [not null, default: 1]
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`store_id`, `name`) [unique]
+  }
+}
+
+Table `menu_ingredients` {
+  `menu_id` bigint [pk, not null]
+  `inventory_id` bigint [pk, not null]
+  `required_quantity` decimal(12,3) [not null]
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`inventory_id`)
+  }
+}
+
+Table `menus` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `category_id` bigint
+  `name` varchar(100) [not null]
+  `description` text
+  `price` decimal(12,2) [not null]
+  `image_url` varchar(500)
+  `is_available` boolean [not null, default: 1]
+  `created_at` timestamp
+  `updated_at` timestamp
+  `deleted_at` timestamp
+
+  indexes {
+    (`category_id`)
+    (`store_id`, `category_id`, `is_available`)
+  }
+}
+
+Table `order_items` {
+  `id` bigint [pk, increment, not null]
+  `order_id` bigint [not null]
+  `menu_id` bigint
+  `menu_name` varchar(100) [not null]
+  `unit_price` decimal(12,2) [not null]
+  `quantity` int [not null]
+  `line_amount` decimal(12,2) [not null]
+  `created_at` timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (`menu_id`)
+    (`order_id`)
+  }
+}
+
+Table `orders` {
+  `id` bigint [pk, increment, not null]
+  `order_number` varchar(64) [not null]
+  `user_id` bigint [not null]
+  `store_id` bigint [not null]
+  `reservation_id` bigint
+  `menu_amount` decimal(12,2) [not null]
+  `deposit_amount` decimal(12,2) [not null, default: 0.00]
+  `coupon_discount_amount` decimal(12,2) [not null, default: 0.00]
+  `point_used` int [not null, default: 0]
+  `final_amount` decimal(12,2) [not null]
+  `status` varchar(30) [not null, default: 'PENDING_PAYMENT', note: 'enum(PENDING_PAYMENT,PAID,PREPARING,READY,COMPLETED,CANCELLED,REFUNDED)']
+  `customer_request` text
+  `paid_at` timestamp
+  `preparing_at` timestamp
+  `ready_at` timestamp
+  `completed_at` timestamp
+  `cancelled_at` timestamp
+  `refunded_at` timestamp
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`order_number`) [unique]
+    (`reservation_id`) [unique]
+    (`store_id`, `paid_at`)
+    (`store_id`, `status`, `created_at`)
+    (`user_id`, `created_at`)
+  }
+}
+
+Table `payments` {
+  `id` bigint [pk, increment, not null]
+  `order_id` bigint [not null]
+  `provider` varchar(30) [not null, default: 'TOSS']
+  `payment_key` varchar(255)
+  `toss_order_id` varchar(64) [not null]
+  `method` varchar(50)
+  `amount` decimal(12,2) [not null]
+  `cancelled_amount` decimal(12,2) [not null, default: 0.00]
+  `status` varchar(30) [not null, default: 'READY', note: 'enum(READY,DONE,FAILED,CANCELLED,PARTIAL_CANCELLED)']
+  `failure_code` varchar(100)
+  `failure_message` varchar(500)
+  `cancel_reason` varchar(500)
+  `approved_at` timestamp
+  `cancelled_at` timestamp
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`order_id`) [unique]
+    (`payment_key`) [unique]
+    (`status`, `created_at`)
+    (`toss_order_id`) [unique]
+  }
+}
+
+Table `point_transactions` {
+  `id` bigint [pk, increment, not null]
+  `customer_store_account_id` bigint [not null]
+  `type` varchar(30) [not null, note: 'enum(EARN,USE,CANCEL,EXPIRE,ADJUSTMENT)']
+  `amount` int [not null]
+  `balance_after` int [not null]
+  `reason` varchar(255) [not null]
+  `reference_type` varchar(30)
+  `reference_id` bigint
+  `created_by` bigint
+  `idempotency_key` varchar(150) [not null]
+  `expires_at` timestamp
+  `created_at` timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (`created_by`, `created_at`)
+    (`customer_store_account_id`, `created_at`)
+    (`idempotency_key`) [unique]
+    (`reference_type`, `reference_id`)
+  }
+}
+
+Table `post_categories` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `name` varchar(50) [not null]
+  `slug` varchar(100) [not null]
+  `description` varchar(255)
+  `sort_order` int [not null, default: 0]
+  `is_active` boolean [not null, default: 1]
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`store_id`, `is_active`)
+    (`store_id`, `slug`) [unique]
+  }
+}
+
+Table `post_images` {
+  `id` bigint [pk, increment, not null]
+  `post_id` bigint [not null]
+  `image_url` varchar(500) [not null]
+  `alt_text` varchar(255)
+  `sort_order` int [not null, default: 0]
+  `created_at` timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (`post_id`, `sort_order`)
+  }
+}
+
+Table `post_likes` {
+  `id` bigint [pk, increment, not null]
+  `post_id` bigint [not null]
+  `user_id` bigint [not null]
+  `created_at` timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (`post_id`, `user_id`) [unique]
+    (`user_id`, `created_at`)
+  }
+}
+
+Table `post_tags` {
+  `post_id` bigint [pk, not null]
+  `tag_id` bigint [pk, not null]
+
+  indexes {
+    (`tag_id`)
+  }
+}
+
+Table `posts` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `category_id` bigint [not null]
+  `author_id` bigint [not null]
+  `title` varchar(255) [not null]
+  `slug` varchar(255) [not null]
+  `summary` varchar(500)
+  `content` text [not null]
+  `thumbnail_url` varchar(500)
+  `status` varchar(20) [not null, default: 'DRAFT']
+  `view_count` int [not null, default: 0]
+  `scheduled_at` timestamp
+  `published_at` timestamp
+  `created_at` timestamp
+  `updated_at` timestamp
+  `deleted_at` timestamp
+
+  indexes {
+    (`author_id`)
+    (`category_id`, `status`, `published_at`)
+    (`store_id`, `slug`) [unique]
+    (`store_id`, `status`, `published_at`)
+  }
+}
+
+Table `referrals` {
+  `id` bigint [pk, increment, not null]
+  `inviter_id` bigint [not null]
+  `invitee_id` bigint
+  `code` varchar(20) [not null]
+  `status` varchar(30) [not null, default: 'AVAILABLE', note: 'enum(AVAILABLE,COMPLETED)']
+  `reward_points` int [not null, default: 1000]
+  `completed_at` timestamp
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`code`) [unique]
+    (`invitee_id`) [unique]
+    (`inviter_id`)
+  }
+}
+
+Table `reservation_seats` {
+  `id` bigint [pk, increment, not null]
+  `reservation_id` bigint [not null]
+  `reservation_slot_id` bigint [not null]
+  `seat_id` bigint [not null]
+  `created_at` timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (`reservation_id`, `seat_id`) [unique]
+    (`reservation_slot_id`, `seat_id`) [unique]
+    (`seat_id`)
+  }
+}
+
+Table `reservation_slots` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `slot_date` date [not null]
+  `start_time` time [not null]
+  `end_time` time [not null]
+  `is_active` boolean [not null, default: 1]
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`store_id`, `slot_date`, `is_active`)
+    (`store_id`, `slot_date`, `start_time`) [unique]
+  }
+}
+
+Table `reservations` {
+  `id` bigint [pk, increment, not null]
+  `user_id` bigint [not null]
+  `store_id` bigint [not null]
+  `reservation_slot_id` bigint [not null]
+  `reservation_number` varchar(50) [not null]
+  `guest_count` int [not null]
+  `customer_name` varchar(50) [not null]
+  `customer_phone` varchar(30) [not null]
+  `customer_request` text
+  `status` varchar(30) [not null, default: 'PENDING_APPROVAL', note: 'enum(PENDING_APPROVAL,AWAITING_PAYMENT,CONFIRMED,REJECTED,CANCELLED,COMPLETED,NO_SHOW,PAYMENT_FAILED,EXPIRED)']
+  `approved_by` bigint
+  `approved_at` timestamp
+  `rejected_at` timestamp
+  `rejection_reason` varchar(500)
+  `approval_expires_at` timestamp
+  `payment_expires_at` timestamp
+  `confirmed_at` timestamp
+  `cancelled_at` timestamp
+  `completed_at` timestamp
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`approval_expires_at`)
+    (`approved_by`)
+    (`payment_expires_at`)
+    (`reservation_number`) [unique]
+    (`reservation_slot_id`, `status`)
+    (`store_id`, `status`, `created_at`)
+    (`user_id`, `status`)
+  }
+}
+
+Table `review_images` {
+  `id` bigint [pk, increment, not null]
+  `review_id` bigint [not null]
+  `image_url` varchar(500) [not null]
+  `alt_text` varchar(255)
+  `sort_order` int [not null, default: 0]
+  `created_at` timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (`review_id`, `sort_order`)
+  }
+}
+
+Table `review_replies` {
+  `id` bigint [pk, increment, not null]
+  `review_id` bigint [not null]
+  `author_id` bigint [not null]
+  `content` text [not null]
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`author_id`)
+    (`review_id`) [unique]
+  }
+}
+
+Table `reviews` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `user_id` bigint [not null]
+  `order_id` bigint
+  `rating` int [not null]
+  `content` text [not null]
+  `is_verified_purchase` boolean [not null, default: 0]
+  `status` varchar(30) [not null, default: 'VISIBLE', note: 'enum(VISIBLE,HIDDEN,REPORTED)']
+  `created_at` timestamp
+  `updated_at` timestamp
+  `deleted_at` timestamp
+
+  indexes {
+    (`order_id`) [unique]
+    (`store_id`, `rating`)
+    (`store_id`, `status`, `created_at`)
+    (`user_id`, `created_at`)
+  }
+}
+
+Table `social_accounts` {
+  `id` bigint [pk, increment, not null]
+  `user_id` bigint [not null]
+  `provider` varchar(30) [not null]
+  `provider_user_id` varchar(255) [not null]
+  `provider_email` varchar(255)
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`provider`, `provider_user_id`) [unique]
+    (`user_id`)
+  }
+}
+
+Table `store_business_hours` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `day_of_week` int [not null]
+  `opening_time` time
+  `closing_time` time
+  `is_closed` boolean [not null, default: 0]
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`store_id`, `day_of_week`) [unique]
+  }
+}
+
+Table `store_closures` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `closure_date` date [not null]
+  `reason` varchar(255)
+  `created_at` timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (`store_id`, `closure_date`) [unique]
+  }
+}
+
+Table `store_favorites` {
+  `id` bigint [pk, increment, not null]
+  `user_id` bigint [not null]
+  `store_id` bigint [not null]
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`store_id`)
+    (`user_id`, `store_id`) [unique]
+  }
+}
+
+Table `store_images` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `image_url` varchar(500) [not null]
+  `alt_text` varchar(255)
+  `sort_order` int [not null, default: 0]
+  `created_at` timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (`store_id`, `sort_order`)
+  }
+}
+
+Table `store_members` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `user_id` bigint [not null]
+  `role` varchar(20) [not null, default: 'STAFF']
+  `is_active` boolean [not null, default: 1]
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`store_id`, `user_id`) [unique]
+    (`user_id`, `role`, `is_active`)
+  }
+}
+
+Table `store_noshow_policies` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `deposit_required` boolean [not null, default: 0]
+  `deposit_amount` decimal(12,2) [not null, default: 0.00]
+  `free_cancellation_minutes` int [not null, default: 60]
+  `penalty_type` varchar(30) [not null, default: 'NONE', note: 'enum(NONE,POINT,RESERVATION_BLOCK)']
+  `penalty_point_amount` int [not null, default: 0]
+  `reservation_block_days` int [not null, default: 0]
+  `is_active` boolean [not null, default: 1]
+  `created_by` bigint
+  `updated_by` bigint
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`created_by`)
+    (`store_id`) [unique]
+    (`updated_by`)
+  }
+}
+
+Table `store_seats` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `seat_code` varchar(30) [not null]
+  `seat_name` varchar(100) [not null]
+  `seat_type` varchar(30) [not null, default: 'NORMAL', note: 'enum(WINDOW,NORMAL,GROUP,OUTDOOR)']
+  `capacity` int [not null]
+  `floor_number` int [not null, default: 1]
+  `position_x` int
+  `position_y` int
+  `status` varchar(30) [not null, default: 'AVAILABLE', note: 'enum(AVAILABLE,UNAVAILABLE,MAINTENANCE)']
+  `is_active` boolean [not null, default: 1]
+  `created_at` timestamp
+  `updated_at` timestamp
+  `deleted_at` timestamp
+
+  indexes {
+    (`store_id`, `seat_code`) [unique]
+    (`store_id`, `status`, `is_active`)
+  }
+}
+
+Table `stores` {
+  `id` bigint [pk, increment, not null]
+  `name` varchar(100) [not null]
+  `slug` varchar(150) [not null]
+  `description` text
+  `address` varchar(255) [not null]
+  `detail_address` varchar(255)
+  `phone` varchar(30)
+  `latitude` decimal(10,7)
+  `longitude` decimal(10,7)
+  `thumbnail_url` varchar(500)
+  `reservation_enabled` boolean [not null, default: 1]
+  `is_active` boolean [not null, default: 1]
+  `created_at` timestamp
+  `updated_at` timestamp
+  `deleted_at` timestamp
+
+  indexes {
+    (`is_active`)
+    (`latitude`, `longitude`)
+    (`slug`) [unique]
+  }
+}
+
+Table `tags` {
+  `id` bigint [pk, increment, not null]
+  `store_id` bigint [not null]
+  `name` varchar(50) [not null]
+  `slug` varchar(100) [not null]
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`store_id`, `slug`) [unique]
+  }
+}
+
+Table `user_coupons` {
+  `id` bigint [pk, increment, not null]
+  `coupon_id` bigint [not null]
+  `user_id` bigint [not null]
+  `coupon_code` varchar(100) [not null]
+  `status` varchar(30) [not null, default: 'AVAILABLE', note: 'enum(AVAILABLE,USED,EXPIRED,CANCELLED)']
+  `issued_by` bigint
+  `issued_at` timestamp [not null]
+  `expires_at` timestamp [not null]
+  `used_order_id` bigint
+  `used_at` timestamp
+  `cancelled_at` timestamp
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`coupon_code`) [unique]
+    (`coupon_id`, `status`)
+    (`issued_by`)
+    (`used_order_id`) [unique]
+    (`user_id`, `status`, `expires_at`)
+  }
+}
+
+Table `user_preferences` {
+  `id` bigint [pk, increment, not null]
+  `user_id` bigint [not null]
+  `order_notifications` boolean [not null, default: 1]
+  `location_enabled` boolean [not null, default: 0]
+  `marketing_notifications` boolean [not null, default: 0]
+  `latitude` decimal(10,7)
+  `longitude` decimal(10,7)
+  `preferred_tags` json
+  `created_at` timestamp
+  `updated_at` timestamp
+
+  indexes {
+    (`user_id`) [unique]
+  }
+}
+
+Table `users` {
+  `id` bigint [pk, increment, not null]
+  `name` varchar(255) [not null]
+  `email` varchar(255) [not null]
+  `email_verified_at` timestamp
+  `last_login_at` timestamp
+  `is_active` boolean [not null, default: 1]
+  `password` varchar(255) [not null]
+  `phone` varchar(30)
+  `profile_image_url` varchar(500)
+  `role` varchar(20) [not null, default: 'CUSTOMER']
+  `remember_token` varchar(100)
+  `created_at` timestamp
+  `updated_at` timestamp
+  `deleted_at` timestamp
+
+  indexes {
+    (`email`) [unique]
+    (`is_active`)
+    (`role`)
+  }
+}
+
+// ==================== Foreign key relationships ====================
+
+Ref: `comments`.`parent_id` > `comments`.`id` [delete: set null]
+Ref: `comments`.`post_id` > `posts`.`id` [delete: cascade]
+Ref: `comments`.`user_id` > `users`.`id` [delete: cascade]
+Ref: `coupons`.`created_by` > `users`.`id` [delete: restrict]
+Ref: `coupons`.`free_menu_id` > `menus`.`id` [delete: set null]
+Ref: `coupons`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `customer_inquiries`.`answered_by` > `users`.`id` [delete: set null]
+Ref: `customer_inquiries`.`user_id` > `users`.`id` [delete: cascade]
+Ref: `customer_store_accounts`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `customer_store_accounts`.`user_id` > `users`.`id` [delete: cascade]
+Ref: `customer_visits`.`confirmed_by` > `users`.`id` [delete: set null]
+Ref: `customer_visits`.`order_id` > `orders`.`id` [delete: set null]
+Ref: `customer_visits`.`reservation_id` > `reservations`.`id` [delete: set null]
+Ref: `customer_visits`.`store_id` > `stores`.`id` [delete: restrict]
+Ref: `customer_visits`.`user_id` > `users`.`id` [delete: restrict]
+Ref: `inventories`.`created_by` > `users`.`id` [delete: set null]
+Ref: `inventories`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `inventories`.`updated_by` > `users`.`id` [delete: set null]
+Ref: `inventory_transactions`.`created_by` > `users`.`id` [delete: set null]
+Ref: `inventory_transactions`.`inventory_id` > `inventories`.`id` [delete: cascade]
+Ref: `membership_stamp_events`.`order_id` > `orders`.`id` [delete: set null]
+Ref: `membership_stamp_events`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `membership_stamp_events`.`user_id` > `users`.`id` [delete: cascade]
+Ref: `menu_categories`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `menu_ingredients`.`inventory_id` > `inventories`.`id` [delete: cascade]
+Ref: `menu_ingredients`.`menu_id` > `menus`.`id` [delete: cascade]
+Ref: `menus`.`category_id` > `menu_categories`.`id` [delete: set null]
+Ref: `menus`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `order_items`.`menu_id` > `menus`.`id` [delete: set null]
+Ref: `order_items`.`order_id` > `orders`.`id` [delete: cascade]
+Ref: `orders`.`reservation_id` > `reservations`.`id` [delete: restrict]
+Ref: `orders`.`store_id` > `stores`.`id` [delete: restrict]
+Ref: `orders`.`user_id` > `users`.`id` [delete: restrict]
+Ref: `payments`.`order_id` > `orders`.`id` [delete: restrict]
+Ref: `point_transactions`.`created_by` > `users`.`id` [delete: set null]
+Ref: `point_transactions`.`customer_store_account_id` > `customer_store_accounts`.`id` [delete: cascade]
+Ref: `post_categories`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `post_images`.`post_id` > `posts`.`id` [delete: cascade]
+Ref: `post_likes`.`post_id` > `posts`.`id` [delete: cascade]
+Ref: `post_likes`.`user_id` > `users`.`id` [delete: cascade]
+Ref: `post_tags`.`post_id` > `posts`.`id` [delete: cascade]
+Ref: `post_tags`.`tag_id` > `tags`.`id` [delete: cascade]
+Ref: `posts`.`author_id` > `users`.`id` [delete: restrict]
+Ref: `posts`.`category_id` > `post_categories`.`id` [delete: restrict]
+Ref: `posts`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `referrals`.`invitee_id` > `users`.`id` [delete: cascade]
+Ref: `referrals`.`inviter_id` > `users`.`id` [delete: cascade]
+Ref: `reservation_seats`.`reservation_id` > `reservations`.`id` [delete: cascade]
+Ref: `reservation_seats`.`reservation_slot_id` > `reservation_slots`.`id` [delete: restrict]
+Ref: `reservation_seats`.`seat_id` > `store_seats`.`id` [delete: restrict]
+Ref: `reservation_slots`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `reservations`.`approved_by` > `users`.`id` [delete: set null]
+Ref: `reservations`.`reservation_slot_id` > `reservation_slots`.`id` [delete: restrict]
+Ref: `reservations`.`store_id` > `stores`.`id` [delete: restrict]
+Ref: `reservations`.`user_id` > `users`.`id` [delete: restrict]
+Ref: `review_images`.`review_id` > `reviews`.`id` [delete: cascade]
+Ref: `review_replies`.`author_id` > `users`.`id` [delete: restrict]
+Ref: `review_replies`.`review_id` > `reviews`.`id` [delete: cascade]
+Ref: `reviews`.`order_id` > `orders`.`id` [delete: set null]
+Ref: `reviews`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `reviews`.`user_id` > `users`.`id` [delete: cascade]
+Ref: `social_accounts`.`user_id` > `users`.`id` [delete: cascade]
+Ref: `store_business_hours`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `store_closures`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `store_favorites`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `store_favorites`.`user_id` > `users`.`id` [delete: cascade]
+Ref: `store_images`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `store_members`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `store_members`.`user_id` > `users`.`id` [delete: cascade]
+Ref: `store_noshow_policies`.`created_by` > `users`.`id` [delete: set null]
+Ref: `store_noshow_policies`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `store_noshow_policies`.`updated_by` > `users`.`id` [delete: set null]
+Ref: `store_seats`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `tags`.`store_id` > `stores`.`id` [delete: cascade]
+Ref: `user_coupons`.`coupon_id` > `coupons`.`id` [delete: cascade]
+Ref: `user_coupons`.`issued_by` > `users`.`id` [delete: set null]
+Ref: `user_coupons`.`used_order_id` > `orders`.`id` [delete: set null]
+Ref: `user_coupons`.`user_id` > `users`.`id` [delete: cascade]
+Ref: `user_preferences`.`user_id` > `users`.`id` [delete: cascade]

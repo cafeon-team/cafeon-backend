@@ -11,7 +11,13 @@ class Comment extends Model
 {
     use SoftDeletes;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'post_id',
+        'user_id',
+        'parent_id',
+        'content',
+        'status',
+    ];
 
     public function post(): BelongsTo
     {

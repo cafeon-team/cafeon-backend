@@ -9,7 +9,21 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Reservation extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'store_id',
+        'reservation_slot_id',
+        'reservation_number',
+        'guest_count',
+        'customer_name',
+        'customer_phone',
+        'customer_request',
+        'status',
+        'approval_expires_at',
+        'approved_at',
+        'approved_by',
+        'cancelled_at',
+    ];
     protected function casts(): array
     {
         return [
