@@ -21,7 +21,7 @@ Table comments {
   deleted_at timestamp
 
   indexes {
-    (parent_id)
+    parent_id
     (post_id, status, created_at)
     (user_id, created_at)
   }
@@ -49,8 +49,8 @@ Table coupons {
   deleted_at timestamp
 
   indexes {
-    (created_by)
-    (free_menu_id)
+    created_by
+    free_menu_id
     (store_id, is_active, valid_until)
   }
 }
@@ -69,7 +69,7 @@ Table customer_inquiries {
   updated_at timestamp
 
   indexes {
-    (answered_by)
+    answered_by
     (user_id, status)
   }
 }
@@ -111,10 +111,10 @@ Table customer_visits {
   created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
 
   indexes {
-    (confirmed_by)
-    (idempotency_key) [unique]
-    (order_id) [unique]
-    (reservation_id) [unique]
+    confirmed_by
+    idempotency_key [unique]
+    order_id [unique]
+    reservation_id [unique]
     (store_id, visited_at)
     (user_id, store_id, visited_at)
   }
@@ -146,10 +146,10 @@ Table inventories {
   deleted_at timestamp
 
   indexes {
-    (created_by)
+    created_by
     (store_id, ingredient_name) [unique]
     (store_id, is_active)
-    (updated_by)
+    updated_by
   }
 }
 
@@ -183,8 +183,8 @@ Table membership_stamp_events {
   created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
 
   indexes {
-    (order_id)
-    (store_id)
+    order_id
+    store_id
     (user_id, store_id, created_at)
   }
 }
@@ -211,7 +211,7 @@ Table menu_ingredients {
   updated_at timestamp
 
   indexes {
-    (inventory_id)
+    inventory_id
   }
 }
 
@@ -229,7 +229,7 @@ Table menus {
   deleted_at timestamp
 
   indexes {
-    (category_id)
+    category_id
     (store_id, category_id, is_available)
   }
 }
@@ -245,8 +245,8 @@ Table order_items {
   created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
 
   indexes {
-    (menu_id)
-    (order_id)
+    menu_id
+    order_id
   }
 }
 
@@ -273,8 +273,8 @@ Table orders {
   updated_at timestamp
 
   indexes {
-    (order_number) [unique]
-    (reservation_id) [unique]
+    order_number [unique]
+    reservation_id [unique]
     (store_id, paid_at)
     (store_id, status, created_at)
     (user_id, created_at)
@@ -300,10 +300,10 @@ Table payments {
   updated_at timestamp
 
   indexes {
-    (order_id) [unique]
-    (payment_key) [unique]
+    order_id [unique]
+    payment_key [unique]
     (status, created_at)
-    (toss_order_id) [unique]
+    toss_order_id [unique]
   }
 }
 
@@ -324,7 +324,7 @@ Table point_transactions {
   indexes {
     (created_by, created_at)
     (customer_store_account_id, created_at)
-    (idempotency_key) [unique]
+    idempotency_key [unique]
     (reference_type, reference_id)
   }
 }
@@ -376,7 +376,7 @@ Table post_tags {
   tag_id bigint [pk, not null]
 
   indexes {
-    (tag_id)
+    tag_id
   }
 }
 
@@ -399,7 +399,7 @@ Table posts {
   deleted_at timestamp
 
   indexes {
-    (author_id)
+    author_id
     (category_id, status, published_at)
     (store_id, slug) [unique]
     (store_id, status, published_at)
@@ -418,9 +418,9 @@ Table referrals {
   updated_at timestamp
 
   indexes {
-    (code) [unique]
-    (invitee_id) [unique]
-    (inviter_id)
+    code [unique]
+    invitee_id [unique]
+    inviter_id
   }
 }
 
@@ -434,7 +434,7 @@ Table reservation_seats {
   indexes {
     (reservation_id, seat_id) [unique]
     (reservation_slot_id, seat_id) [unique]
-    (seat_id)
+    seat_id
   }
 }
 
@@ -478,10 +478,10 @@ Table reservations {
   updated_at timestamp
 
   indexes {
-    (approval_expires_at)
-    (approved_by)
-    (payment_expires_at)
-    (reservation_number) [unique]
+    approval_expires_at
+    approved_by
+    payment_expires_at
+    reservation_number [unique]
     (reservation_slot_id, status)
     (store_id, status, created_at)
     (user_id, status)
@@ -510,8 +510,8 @@ Table review_replies {
   updated_at timestamp
 
   indexes {
-    (author_id)
-    (review_id) [unique]
+    author_id
+    review_id [unique]
   }
 }
 
@@ -529,7 +529,7 @@ Table reviews {
   deleted_at timestamp
 
   indexes {
-    (order_id) [unique]
+    order_id [unique]
     (store_id, rating)
     (store_id, status, created_at)
     (user_id, created_at)
@@ -547,7 +547,7 @@ Table social_accounts {
 
   indexes {
     (provider, provider_user_id) [unique]
-    (user_id)
+    user_id
   }
 }
 
@@ -586,7 +586,7 @@ Table store_favorites {
   updated_at timestamp
 
   indexes {
-    (store_id)
+    store_id
     (user_id, store_id) [unique]
   }
 }
@@ -635,9 +635,9 @@ Table store_noshow_policies {
   updated_at timestamp
 
   indexes {
-    (created_by)
-    (store_id) [unique]
-    (updated_by)
+    created_by
+    store_id [unique]
+    updated_by
   }
 }
 
@@ -681,9 +681,9 @@ Table stores {
   deleted_at timestamp
 
   indexes {
-    (is_active)
+    is_active
     (latitude, longitude)
-    (slug) [unique]
+    slug [unique]
   }
 }
 
@@ -716,10 +716,10 @@ Table user_coupons {
   updated_at timestamp
 
   indexes {
-    (coupon_code) [unique]
+    coupon_code [unique]
     (coupon_id, status)
-    (issued_by)
-    (used_order_id) [unique]
+    issued_by
+    used_order_id [unique]
     (user_id, status, expires_at)
   }
 }
@@ -737,7 +737,7 @@ Table user_preferences {
   updated_at timestamp
 
   indexes {
-    (user_id) [unique]
+    user_id [unique]
   }
 }
 
@@ -758,9 +758,9 @@ Table users {
   deleted_at timestamp
 
   indexes {
-    (email) [unique]
-    (is_active)
-    (role)
+    email [unique]
+    is_active
+    role
   }
 }
 

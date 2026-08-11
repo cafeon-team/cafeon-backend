@@ -121,7 +121,9 @@ class ExportDatabaseDbml extends Command
             $lines[] = '  indexes {';
             foreach ($indexes as $index) {
                 $type = (int) $index->non_unique === 0 ? ' [unique]' : '';
-                $lines[] = '    ('.$index->columns_list.')'.$type;
+                $columns = (string) $index->columns_list;
+                $expression = str_contains($columns, ',') ? '('.$columns.')' : $columns;
+                $lines[] = '    '.$expression.$type;
             }
             $lines[] = '  }';
         }
