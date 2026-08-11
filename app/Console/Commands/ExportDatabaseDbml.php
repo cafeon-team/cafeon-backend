@@ -63,7 +63,7 @@ class ExportDatabaseDbml extends Command
             }
             $delete = strtolower((string) $foreignKey->delete_rule);
             $lines[] = sprintf(
-                'Ref: `%s`.`%s` > `%s`.`%s` [delete: %s]',
+                'Ref: %s.%s > %s.%s [delete: %s]',
                 $foreignKey->table_name,
                 $foreignKey->column_name,
                 $foreignKey->referenced_table_name,
@@ -88,11 +88,11 @@ class ExportDatabaseDbml extends Command
             [$database, $table],
         );
         $indexes = collect(DB::select(
-            "SELECT INDEX_NAME AS index_name, NON_UNIQUE AS non_unique, GROUP_CONCAT(CONCAT('`', COLUMN_NAME, '`') ORDER BY SEQ_IN_INDEX SEPARATOR ', ') AS columns_list FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME <> 'PRIMARY' GROUP BY INDEX_NAME, NON_UNIQUE ORDER BY INDEX_NAME",
+            "SELECT INDEX_NAME AS index_name, NON_UNIQUE AS non_unique, GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX SEPARATOR ', ') AS columns_list FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME <> 'PRIMARY' GROUP BY INDEX_NAME, NON_UNIQUE ORDER BY INDEX_NAME",
             [$database, $table],
         ));
 
-        $lines = ["Table `{$table}` {"];
+        $lines = ["Table {$table} {"];
         foreach ($columns as $column) {
             $settings = [];
             if ($column->column_key === 'PRI') {
@@ -113,7 +113,7 @@ class ExportDatabaseDbml extends Command
                 $settings[] = "note: '".str_replace("'", '', $column->column_type)."'";
             }
             $suffix = $settings === [] ? '' : ' ['.implode(', ', $settings).']';
-            $lines[] = sprintf('  `%s` %s%s', $column->column_name, $this->dbmlType($column), $suffix);
+            $lines[] = sprintf('  %s %s%s', $column->column_name, $this->dbmlType($column), $suffix);
         }
 
         if ($indexes->isNotEmpty()) {
