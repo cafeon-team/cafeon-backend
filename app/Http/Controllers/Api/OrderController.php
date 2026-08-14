@@ -38,12 +38,11 @@ class OrderController extends Controller
         return response()->json(['order' => $order->load(['store:id,name,slug,address,phone', 'items.menu:id,name,image_url', 'payment'])]);
     }
 
-    public function cancel(Request $request, Order $order): JsonResponse
+    public function cancel(Request $request, Order $order, OrderService $orders): JsonResponse
     {
-        abort_unless($order->user_id === $request->user()->id, 404);
-        abort_unless($order->status === 'PENDING_PAYMENT', 422, '결제 대기 주문만 취소할 수 있습니다.');
-        $order->forceFill(['status' => 'CANCELLED', 'cancelled_at' => now()])->save();
-
-        return response()->json(['message' => '주문이 취소되었습니다.', 'order' => $order]);
+        return response()->json([
+            'message' => '주문이 취소되었습니다.',
+            'order' => $orders->cancel($request->user(), $order),
+        ]);
     }
 }

@@ -17,20 +17,20 @@
                 "tags": [
                     "Admin"
                 ],
-                "summary": "FrontendFeatureController storeFaq",
-                "operationId": "post_api_admin_faqs",
+                "summary": "storeFaq (admin/faqs)",
+                "operationId": "post_api_admin_faqs_5fc83a",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
                     }
                 },
                 "security": [
@@ -45,22 +45,8 @@
                 "tags": [
                     "Admin"
                 ],
-                "summary": "FrontendFeatureController updateFaq",
-                "operationId": "put_api_admin_faqs_faq_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "updateFaq (admin/faqs/{faq})",
+                "operationId": "put_api_admin_faqs_faq_a8d2bf",
                 "parameters": [
                     {
                         "name": "faq",
@@ -71,6 +57,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -81,22 +81,8 @@
                 "tags": [
                     "Admin"
                 ],
-                "summary": "FrontendFeatureController deleteFaq",
-                "operationId": "delete_api_admin_faqs_faq_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "deleteFaq (admin/faqs/{faq})",
+                "operationId": "delete_api_admin_faqs_faq_356df5",
                 "parameters": [
                     {
                         "name": "faq",
@@ -107,6 +93,17 @@
                         }
                     }
                 ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -119,22 +116,8 @@
                 "tags": [
                     "Admin"
                 ],
-                "summary": "FrontendFeatureController answerInquiry",
-                "operationId": "patch_api_admin_inquiries_inquiry_answer",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "answerInquiry (admin/inquiries/{inquiry}/answer)",
+                "operationId": "patch_api_admin_inquiries_inquiry_answer_33117a",
                 "parameters": [
                     {
                         "name": "inquiry",
@@ -145,6 +128,76 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/subscriptions/{subscription}/activate": {
+            "post": {
+                "tags": [
+                    "Plans"
+                ],
+                "summary": "구독 결제 확인 및 활성화 (admin/subscriptions/{subscription}/activate)",
+                "operationId": "post_api_admin_subscriptions_subscription_activate_3cfbc2",
+                "parameters": [
+                    {
+                        "name": "subscription",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "provider_transaction_id"
+                                ],
+                                "properties": {
+                                    "provider_transaction_id": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -155,16 +208,33 @@
         "/api/auth/login": {
             "post": {
                 "tags": [
-                    "Auth"
+                    "Authentication"
                 ],
-                "summary": "AuthController login",
-                "operationId": "post_api_auth_login",
+                "summary": "로그인 (auth/login)",
+                "operationId": "post_api_auth_login_3d54ae",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
+                        "description": "성공"
                     },
                     "422": {
-                        "description": "Validation failed"
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                }
+            }
+        },
+        "/api/auth/owner/signup": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "점주 회원가입 (auth/owner/signup)",
+                "operationId": "post_api_auth_owner_signup_8c62a0",
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
                     }
                 }
             }
@@ -172,16 +242,33 @@
         "/api/auth/signup": {
             "post": {
                 "tags": [
-                    "Auth"
+                    "Authentication"
                 ],
-                "summary": "AuthController register",
-                "operationId": "post_api_auth_signup",
+                "summary": "회원가입 (auth/signup)",
+                "operationId": "post_api_auth_signup_3f40e6",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
+                        "description": "성공"
                     },
                     "422": {
-                        "description": "Validation failed"
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                }
+            }
+        },
+        "/api/auth/social/exchange": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "exchange (auth/social/exchange)",
+                "operationId": "post_api_auth_social_exchange_06530e",
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
                     }
                 }
             }
@@ -189,24 +276,10 @@
         "/api/comments/{comment}": {
             "put": {
                 "tags": [
-                    "Comments"
+                    "Blog"
                 ],
-                "summary": "CommentController update",
-                "operationId": "put_api_comments_comment_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "수정 (comments/{comment})",
+                "operationId": "put_api_comments_comment_da482d",
                 "parameters": [
                     {
                         "name": "comment",
@@ -217,6 +290,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -225,24 +312,10 @@
             },
             "delete": {
                 "tags": [
-                    "Comments"
+                    "Blog"
                 ],
-                "summary": "CommentController destroy",
-                "operationId": "delete_api_comments_comment_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "삭제 (comments/{comment})",
+                "operationId": "delete_api_comments_comment_f15b76",
                 "parameters": [
                     {
                         "name": "comment",
@@ -253,6 +326,17 @@
                         }
                     }
                 ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -263,24 +347,10 @@
         "/api/comments/{comment}/status": {
             "patch": {
                 "tags": [
-                    "Comments"
+                    "Blog"
                 ],
-                "summary": "CommentController updateStatus",
-                "operationId": "patch_api_comments_comment_status",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "상태 변경 (comments/{comment}/status)",
+                "operationId": "patch_api_comments_comment_status_e43771",
                 "parameters": [
                     {
                         "name": "comment",
@@ -291,66 +361,18 @@
                         }
                     }
                 ],
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/faqs": {
-            "get": {
-                "tags": [
-                    "Faqs"
-                ],
-                "summary": "FrontendFeatureController faqs",
-                "operationId": "get_api_faqs",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    }
-                }
-            }
-        },
-        "/api/login": {
-            "post": {
-                "tags": [
-                    "Login"
-                ],
-                "summary": "AuthController login",
-                "operationId": "post_api_login",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    }
-                }
-            }
-        },
-        "/api/logout": {
-            "post": {
-                "tags": [
-                    "Logout"
-                ],
-                "summary": "AuthController logout",
-                "operationId": "post_api_logout",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
                     }
                 },
                 "security": [
@@ -360,25 +382,109 @@
                 ]
             }
         },
+        "/api/directions": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "상세 조회 (directions)",
+                "operationId": "get_api_directions_0fe584",
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
+            }
+        },
+        "/api/faqs": {
+            "get": {
+                "tags": [
+                    "General"
+                ],
+                "summary": "faqs (faqs)",
+                "operationId": "get_api_faqs_02228f",
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "로그인 (login)",
+                "operationId": "post_api_login_9d4135",
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "로그아웃 (logout)",
+                "operationId": "post_api_logout_cab0d8",
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/map/stores": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "목록 조회 (map/stores)",
+                "operationId": "get_api_map_stores_c33b3d",
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
+            }
+        },
         "/api/me": {
             "get": {
                 "tags": [
-                    "Me"
+                    "Authentication"
                 ],
-                "summary": "AuthController me",
-                "operationId": "get_api_me",
+                "summary": "내 정보 조회 (me)",
+                "operationId": "get_api_me_0f9bb8",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
                     }
                 },
                 "security": [
@@ -391,18 +497,10 @@
         "/api/menus/{menu}": {
             "get": {
                 "tags": [
-                    "Menus"
+                    "Stores"
                 ],
-                "summary": "MenuController show",
-                "operationId": "get_api_menus_menu_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    }
-                },
+                "summary": "상세 조회 (menus/{menu})",
+                "operationId": "get_api_menus_menu_fbc702",
                 "parameters": [
                     {
                         "name": "menu",
@@ -412,45 +510,804 @@
                             "type": "integer"
                         }
                     }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
+            }
+        },
+        "/api/notifications": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "목록 조회 (notifications)",
+                "operationId": "get_api_notifications_abb9e2",
+                "parameters": [
+                    {
+                        "name": "unread_only",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "전체 알림 삭제 (notifications)",
+                "operationId": "delete_api_notifications_427599",
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
                 ]
             }
         },
-        "/api/oauth2-callback": {
-            "get": {
+        "/api/notifications/read-all": {
+            "patch": {
                 "tags": [
-                    "Oauth2-callback"
+                    "Notifications"
                 ],
-                "summary": "SwaggerController oauth2Callback",
-                "operationId": "get_api_oauth2_callback",
+                "summary": "전체 알림 읽음 처리 (notifications/read-all)",
+                "operationId": "patch_api_notifications_read_all_47f4bc",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
                     },
                     "422": {
-                        "description": "Validation failed"
+                        "description": "입력값 또는 상태 검증 실패"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications/{notification}": {
+            "delete": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "삭제 (notifications/{notification})",
+                "operationId": "delete_api_notifications_notification_2d1e9d",
+                "parameters": [
+                    {
+                        "name": "notification",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications/{notification}/read": {
+            "patch": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "알림 읽음 처리 (notifications/{notification}/read)",
+                "operationId": "patch_api_notifications_notification_read_c04623",
+                "parameters": [
+                    {
+                        "name": "notification",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/orders": {
             "post": {
                 "tags": [
-                    "Orders"
+                    "Orders & Payments"
                 ],
-                "summary": "OrderController store",
-                "operationId": "post_api_orders",
+                "summary": "등록 (orders)",
+                "operationId": "post_api_orders_7f6c9e",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/inventory/{inventory}": {
+            "put": {
+                "tags": [
+                    "Owner Inventory"
+                ],
+                "summary": "수정 (owner/inventory/{inventory})",
+                "operationId": "put_api_owner_inventory_inventory_6f5468",
+                "parameters": [
+                    {
+                        "name": "inventory",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Owner Inventory"
+                ],
+                "summary": "삭제 (owner/inventory/{inventory})",
+                "operationId": "delete_api_owner_inventory_inventory_460b53",
+                "parameters": [
+                    {
+                        "name": "inventory",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/inventory/{inventory}/transactions": {
+            "post": {
+                "tags": [
+                    "Owner Inventory"
+                ],
+                "summary": "재고 수량 변경 (owner/inventory/{inventory}/transactions)",
+                "operationId": "post_api_owner_inventory_inventory_transactions_83a380",
+                "parameters": [
+                    {
+                        "name": "inventory",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "type"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "STOCK_IN",
+                                            "STOCK_OUT",
+                                            "ADJUSTMENT",
+                                            "RETURN",
+                                            "WASTE"
+                                        ]
+                                    },
+                                    "quantity": {
+                                        "type": "number",
+                                        "example": 3
+                                    },
+                                    "quantity_after": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "reason": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/menu-categories/{category}": {
+            "put": {
+                "tags": [
+                    "General"
+                ],
+                "summary": "updateCategory (owner/menu-categories/{category})",
+                "operationId": "put_api_owner_menu_categories_category_7b5cba",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "General"
+                ],
+                "summary": "destroyCategory (owner/menu-categories/{category})",
+                "operationId": "delete_api_owner_menu_categories_category_bdf0c7",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/menus/{menu}": {
+            "put": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "수정 (owner/menus/{menu})",
+                "operationId": "put_api_owner_menus_menu_10b463",
+                "parameters": [
+                    {
+                        "name": "menu",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "삭제 (owner/menus/{menu})",
+                "operationId": "delete_api_owner_menus_menu_6d63e9",
+                "parameters": [
+                    {
+                        "name": "menu",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/menus/{menu}/availability": {
+            "patch": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "updateAvailability (owner/menus/{menu}/availability)",
+                "operationId": "patch_api_owner_menus_menu_availability_7877f4",
+                "parameters": [
+                    {
+                        "name": "menu",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/orders/{order}/status": {
+            "patch": {
+                "tags": [
+                    "Orders & Payments"
+                ],
+                "summary": "상태 변경 (owner/orders/{order}/status)",
+                "operationId": "patch_api_owner_orders_order_status_c86692",
+                "parameters": [
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/review-replies/{reply}": {
+            "put": {
+                "tags": [
+                    "General"
+                ],
+                "summary": "수정 (owner/review-replies/{reply})",
+                "operationId": "put_api_owner_review_replies_reply_fbd983",
+                "parameters": [
+                    {
+                        "name": "reply",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "General"
+                ],
+                "summary": "삭제 (owner/review-replies/{reply})",
+                "operationId": "delete_api_owner_review_replies_reply_1d06b8",
+                "parameters": [
+                    {
+                        "name": "reply",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/reviews/{review}/reply": {
+            "post": {
+                "tags": [
+                    "Reviews"
+                ],
+                "summary": "등록 (owner/reviews/{review}/reply)",
+                "operationId": "post_api_owner_reviews_review_reply_0478f5",
+                "parameters": [
+                    {
+                        "name": "review",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/staff/{member}": {
+            "delete": {
+                "tags": [
+                    "Owner Staff"
+                ],
+                "summary": "삭제 (owner/staff/{member})",
+                "operationId": "delete_api_owner_staff_member_33f0f0",
+                "parameters": [
+                    {
+                        "name": "member",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Owner Staff"
+                ],
+                "summary": "수정 (owner/staff/{member})",
+                "operationId": "patch_api_owner_staff_member_2b7316",
+                "parameters": [
+                    {
+                        "name": "member",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "MANAGER",
+                                            "STAFF"
+                                        ]
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/stores/{store}/availability": {
+            "patch": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "updateMany (owner/stores/{store}/availability)",
+                "operationId": "patch_api_owner_stores_store_availability_8c73e6",
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
                     }
                 },
                 "security": [
@@ -463,24 +1320,10 @@
         "/api/owner/stores/{store}/dashboard": {
             "get": {
                 "tags": [
-                    "Owner"
+                    "Stores"
                 ],
-                "summary": "OwnerDashboardController show",
-                "operationId": "get_api_owner_stores_store_dashboard",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "상세 조회 (owner/stores/{store}/dashboard)",
+                "operationId": "get_api_owner_stores_store_dashboard_308620",
                 "parameters": [
                     {
                         "name": "store",
@@ -491,6 +1334,828 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/stores/{store}/inventory": {
+            "get": {
+                "tags": [
+                    "Owner Inventory"
+                ],
+                "summary": "목록 조회 (owner/stores/{store}/inventory)",
+                "operationId": "get_api_owner_stores_store_inventory_744e98",
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "low_stock",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "keyword",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Owner Inventory"
+                ],
+                "summary": "등록 (owner/stores/{store}/inventory)",
+                "operationId": "post_api_owner_stores_store_inventory_447f34",
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "ingredient_name",
+                                    "unit"
+                                ],
+                                "properties": {
+                                    "ingredient_name": {
+                                        "type": "string",
+                                        "example": "원두"
+                                    },
+                                    "quantity": {
+                                        "type": "number",
+                                        "example": 10
+                                    },
+                                    "unit": {
+                                        "type": "string",
+                                        "example": "kg"
+                                    },
+                                    "low_stock_threshold": {
+                                        "type": "number",
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/stores/{store}/inventory/transactions": {
+            "get": {
+                "tags": [
+                    "Owner Inventory"
+                ],
+                "summary": "재고 거래 이력 (owner/stores/{store}/inventory/transactions)",
+                "operationId": "get_api_owner_stores_store_inventory_transactions_301a90",
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/stores/{store}/menu-categories": {
+            "post": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "storeCategory (owner/stores/{store}/menu-categories)",
+                "operationId": "post_api_owner_stores_store_menu_categories_205fc4",
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/stores/{store}/menus": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "목록 조회 (owner/stores/{store}/menus)",
+                "operationId": "get_api_owner_stores_store_menus_3b6750",
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "등록 (owner/stores/{store}/menus)",
+                "operationId": "post_api_owner_stores_store_menus_8efad0",
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/stores/{store}/orders": {
+            "get": {
+                "tags": [
+                    "Orders & Payments"
+                ],
+                "summary": "목록 조회 (owner/stores/{store}/orders)",
+                "operationId": "get_api_owner_stores_store_orders_3d026e",
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/stores/{store}/sales": {
+            "get": {
+                "tags": [
+                    "Owner Sales"
+                ],
+                "summary": "목록 조회 (owner/stores/{store}/sales)",
+                "operationId": "get_api_owner_stores_store_sales_6671b8",
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/stores/{store}/seats/{seat}": {
+            "patch": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "수정 (owner/stores/{store}/seats/{seat})",
+                "operationId": "patch_api_owner_stores_store_seats_seat_78f0f0",
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "seat",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/stores/{store}/staff": {
+            "get": {
+                "tags": [
+                    "Owner Staff"
+                ],
+                "summary": "목록 조회 (owner/stores/{store}/staff)",
+                "operationId": "get_api_owner_stores_store_staff_df9ccb",
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Owner Staff"
+                ],
+                "summary": "등록 (owner/stores/{store}/staff)",
+                "operationId": "post_api_owner_stores_store_staff_efaf6a",
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "role"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "MANAGER",
+                                            "STAFF"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/stores/{store}/waitlists": {
+            "get": {
+                "tags": [
+                    "Reservations & Waitlist"
+                ],
+                "summary": "ownerIndex (owner/stores/{store}/waitlists)",
+                "operationId": "get_api_owner_stores_store_waitlists_61823c",
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/waitlists/{waitlist}/status": {
+            "patch": {
+                "tags": [
+                    "Reservations & Waitlist"
+                ],
+                "summary": "상태 변경 (owner/waitlists/{waitlist}/status)",
+                "operationId": "patch_api_owner_waitlists_waitlist_status_57179c",
+                "parameters": [
+                    {
+                        "name": "waitlist",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/payments/confirm": {
+            "post": {
+                "tags": [
+                    "Orders & Payments"
+                ],
+                "summary": "결제 승인 (payments/confirm)",
+                "operationId": "post_api_payments_confirm_f72c4e",
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/payments/orders/{order}/checkout": {
+            "get": {
+                "tags": [
+                    "Orders & Payments"
+                ],
+                "summary": "결제 준비 (payments/orders/{order}/checkout)",
+                "operationId": "get_api_payments_orders_order_checkout_71c222",
+                "parameters": [
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/payments/orders/{order}/refund": {
+            "post": {
+                "tags": [
+                    "Orders & Payments"
+                ],
+                "summary": "결제 환불 (payments/orders/{order}/refund)",
+                "operationId": "post_api_payments_orders_order_refund_0b5aaa",
+                "parameters": [
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/plans": {
+            "get": {
+                "tags": [
+                    "Plans"
+                ],
+                "summary": "목록 조회 (plans)",
+                "operationId": "get_api_plans_2781b7",
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
+            }
+        },
+        "/api/plans/billing-history": {
+            "get": {
+                "tags": [
+                    "Plans"
+                ],
+                "summary": "구독 결제 이력 (plans/billing-history)",
+                "operationId": "get_api_plans_billing_history_9b65d4",
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/plans/downgrade": {
+            "post": {
+                "tags": [
+                    "Plans"
+                ],
+                "summary": "Basic 요금제로 변경 (plans/downgrade)",
+                "operationId": "post_api_plans_downgrade_7b16a1",
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/plans/me": {
+            "get": {
+                "tags": [
+                    "Plans"
+                ],
+                "summary": "내 정보 조회 (plans/me)",
+                "operationId": "get_api_plans_me_689917",
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/plans/subscribe": {
+            "post": {
+                "tags": [
+                    "Plans"
+                ],
+                "summary": "요금제 구독 신청 (plans/subscribe)",
+                "operationId": "post_api_plans_subscribe_4fdc10",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "plan_id",
+                                    "billing_cycle"
+                                ],
+                                "properties": {
+                                    "plan_id": {
+                                        "type": "integer"
+                                    },
+                                    "billing_cycle": {
+                                        "type": "string",
+                                        "enum": [
+                                            "MONTHLY",
+                                            "YEARLY"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -501,24 +2166,10 @@
         "/api/post-categories/{category}": {
             "put": {
                 "tags": [
-                    "Post-categories"
+                    "Blog"
                 ],
-                "summary": "BlogTaxonomyController updateCategory",
-                "operationId": "put_api_post_categories_category_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "updateCategory (post-categories/{category})",
+                "operationId": "put_api_post_categories_category_8620e8",
                 "parameters": [
                     {
                         "name": "category",
@@ -529,6 +2180,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -537,24 +2202,10 @@
             },
             "delete": {
                 "tags": [
-                    "Post-categories"
+                    "Blog"
                 ],
-                "summary": "BlogTaxonomyController destroyCategory",
-                "operationId": "delete_api_post_categories_category_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "destroyCategory (post-categories/{category})",
+                "operationId": "delete_api_post_categories_category_5c0a67",
                 "parameters": [
                     {
                         "name": "category",
@@ -565,6 +2216,17 @@
                         }
                     }
                 ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -575,37 +2237,34 @@
         "/api/posts": {
             "get": {
                 "tags": [
-                    "Posts"
+                    "Blog"
                 ],
-                "summary": "PostApiController index",
-                "operationId": "get_api_posts",
+                "summary": "목록 조회 (posts)",
+                "operationId": "get_api_posts_473cdd",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     }
                 }
             },
             "post": {
                 "tags": [
-                    "Posts"
+                    "Blog"
                 ],
-                "summary": "PostApiController store",
-                "operationId": "post_api_posts",
+                "summary": "등록 (posts)",
+                "operationId": "post_api_posts_7295e6",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
                     }
                 },
                 "security": [
@@ -618,24 +2277,10 @@
         "/api/posts/{post}": {
             "put": {
                 "tags": [
-                    "Posts"
+                    "Blog"
                 ],
-                "summary": "PostApiController update",
-                "operationId": "put_api_posts_post_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "수정 (posts/{post})",
+                "operationId": "put_api_posts_post_077696",
                 "parameters": [
                     {
                         "name": "post",
@@ -646,6 +2291,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -654,24 +2313,10 @@
             },
             "delete": {
                 "tags": [
-                    "Posts"
+                    "Blog"
                 ],
-                "summary": "PostApiController destroy",
-                "operationId": "delete_api_posts_post_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "삭제 (posts/{post})",
+                "operationId": "delete_api_posts_post_8678aa",
                 "parameters": [
                     {
                         "name": "post",
@@ -682,6 +2327,17 @@
                         }
                     }
                 ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -692,18 +2348,10 @@
         "/api/posts/{post}/comments": {
             "get": {
                 "tags": [
-                    "Posts"
+                    "Blog"
                 ],
-                "summary": "CommentController index",
-                "operationId": "get_api_posts_post_comments",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    }
-                },
+                "summary": "목록 조회 (posts/{post}/comments)",
+                "operationId": "get_api_posts_post_comments_4c4f38",
                 "parameters": [
                     {
                         "name": "post",
@@ -713,28 +2361,19 @@
                             "type": "integer"
                         }
                     }
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
             },
             "post": {
                 "tags": [
-                    "Posts"
+                    "Blog"
                 ],
-                "summary": "CommentController store",
-                "operationId": "post_api_posts_post_comments",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "등록 (posts/{post}/comments)",
+                "operationId": "post_api_posts_post_comments_166467",
                 "parameters": [
                     {
                         "name": "post",
@@ -745,6 +2384,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -755,24 +2408,10 @@
         "/api/posts/{post}/likes": {
             "post": {
                 "tags": [
-                    "Posts"
+                    "Blog"
                 ],
-                "summary": "PostLikeController store",
-                "operationId": "post_api_posts_post_likes",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "등록 (posts/{post}/likes)",
+                "operationId": "post_api_posts_post_likes_443de3",
                 "parameters": [
                     {
                         "name": "post",
@@ -783,6 +2422,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -791,24 +2444,10 @@
             },
             "delete": {
                 "tags": [
-                    "Posts"
+                    "Blog"
                 ],
-                "summary": "PostLikeController destroy",
-                "operationId": "delete_api_posts_post_likes",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "삭제 (posts/{post}/likes)",
+                "operationId": "delete_api_posts_post_likes_2a9c05",
                 "parameters": [
                     {
                         "name": "post",
@@ -819,6 +2458,17 @@
                         }
                     }
                 ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -829,18 +2479,10 @@
         "/api/posts/{slug}": {
             "get": {
                 "tags": [
-                    "Posts"
+                    "Blog"
                 ],
-                "summary": "PostApiController show",
-                "operationId": "get_api_posts_slug_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    }
-                },
+                "summary": "상세 조회 (posts/{slug})",
+                "operationId": "get_api_posts_slug_fb1f04",
                 "parameters": [
                     {
                         "name": "slug",
@@ -850,22 +2492,24 @@
                             "type": "integer"
                         }
                     }
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
             }
         },
         "/api/recommendations/stores": {
             "get": {
                 "tags": [
-                    "Recommendations"
+                    "Stores"
                 ],
-                "summary": "FrontendFeatureController recommendations",
-                "operationId": "get_api_recommendations_stores",
+                "summary": "recommendations (recommendations/stores)",
+                "operationId": "get_api_recommendations_stores_0d4e9b",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     }
                 }
             }
@@ -873,16 +2517,16 @@
         "/api/register": {
             "post": {
                 "tags": [
-                    "Register"
+                    "Authentication"
                 ],
-                "summary": "AuthController register",
-                "operationId": "post_api_register",
+                "summary": "회원가입 (register)",
+                "operationId": "post_api_register_286c00",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
+                        "description": "성공"
                     },
                     "422": {
-                        "description": "Validation failed"
+                        "description": "입력값 또는 상태 검증 실패"
                     }
                 }
             }
@@ -890,22 +2534,22 @@
         "/api/reservations": {
             "post": {
                 "tags": [
-                    "Reservations"
+                    "Reservations & Waitlist"
                 ],
-                "summary": "ReservationController storeFromPayload",
-                "operationId": "post_api_reservations",
+                "summary": "storeFromPayload (reservations)",
+                "operationId": "post_api_reservations_5065f6",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
                     }
                 },
                 "security": [
@@ -918,24 +2562,10 @@
         "/api/reservations/{reservation}/status": {
             "patch": {
                 "tags": [
-                    "Reservations"
+                    "Reservations & Waitlist"
                 ],
-                "summary": "OwnerReservationController updateStatus",
-                "operationId": "patch_api_reservations_reservation_status",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "상태 변경 (reservations/{reservation}/status)",
+                "operationId": "patch_api_reservations_reservation_status_a05f4d",
                 "parameters": [
                     {
                         "name": "reservation",
@@ -946,6 +2576,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -958,22 +2602,8 @@
                 "tags": [
                     "Reviews"
                 ],
-                "summary": "ReviewController update",
-                "operationId": "put_api_reviews_review_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "수정 (reviews/{review})",
+                "operationId": "put_api_reviews_review_3bda18",
                 "parameters": [
                     {
                         "name": "review",
@@ -984,6 +2614,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -994,22 +2638,8 @@
                 "tags": [
                     "Reviews"
                 ],
-                "summary": "ReviewController destroy",
-                "operationId": "delete_api_reviews_review_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "삭제 (reviews/{review})",
+                "operationId": "delete_api_reviews_review_56983b",
                 "parameters": [
                     {
                         "name": "review",
@@ -1020,6 +2650,17 @@
                         }
                     }
                 ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -1032,11 +2673,11 @@
                 "tags": [
                     "Stores"
                 ],
-                "summary": "Store list",
-                "operationId": "c4638e8aa5727048d9e74e129ad04a00",
+                "summary": "목록 조회 (stores)",
+                "operationId": "get_api_stores_59c4bf",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
+                        "description": "성공"
                     }
                 }
             }
@@ -1046,16 +2687,8 @@
                 "tags": [
                     "Stores"
                 ],
-                "summary": "StoreController show",
-                "operationId": "get_api_stores_store_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    }
-                },
+                "summary": "상세 조회 (stores/{store})",
+                "operationId": "get_api_stores_store_2d83cf",
                 "parameters": [
                     {
                         "name": "store",
@@ -1065,7 +2698,12 @@
                             "type": "integer"
                         }
                     }
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
             }
         },
         "/api/stores/{store}/availability": {
@@ -1073,16 +2711,8 @@
                 "tags": [
                     "Stores"
                 ],
-                "summary": "StoreController availability",
-                "operationId": "get_api_stores_store_availability",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    }
-                },
+                "summary": "가용성 조회 (stores/{store}/availability)",
+                "operationId": "get_api_stores_store_availability_3f25cf",
                 "parameters": [
                     {
                         "name": "store",
@@ -1092,7 +2722,12 @@
                             "type": "integer"
                         }
                     }
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
             }
         },
         "/api/stores/{store}/congestion": {
@@ -1100,16 +2735,8 @@
                 "tags": [
                     "Stores"
                 ],
-                "summary": "StoreController availability",
-                "operationId": "get_api_stores_store_congestion",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    }
-                },
+                "summary": "가용성 조회 (stores/{store}/congestion)",
+                "operationId": "get_api_stores_store_congestion_d7d218",
                 "parameters": [
                     {
                         "name": "store",
@@ -1119,7 +2746,12 @@
                             "type": "integer"
                         }
                     }
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
             }
         },
         "/api/stores/{store}/favorite": {
@@ -1127,22 +2759,8 @@
                 "tags": [
                     "Stores"
                 ],
-                "summary": "FrontendFeatureController favorite",
-                "operationId": "post_api_stores_store_favorite",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "favorite (stores/{store}/favorite)",
+                "operationId": "post_api_stores_store_favorite_bbadb0",
                 "parameters": [
                     {
                         "name": "store",
@@ -1153,6 +2771,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -1163,22 +2795,8 @@
                 "tags": [
                     "Stores"
                 ],
-                "summary": "FrontendFeatureController unfavorite",
-                "operationId": "delete_api_stores_store_favorite",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "unfavorite (stores/{store}/favorite)",
+                "operationId": "delete_api_stores_store_favorite_5fc6a3",
                 "parameters": [
                     {
                         "name": "store",
@@ -1189,6 +2807,17 @@
                         }
                     }
                 ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -1201,16 +2830,8 @@
                 "tags": [
                     "Stores"
                 ],
-                "summary": "MenuController index",
-                "operationId": "get_api_stores_store_menus",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    }
-                },
+                "summary": "목록 조회 (stores/{store}/menus)",
+                "operationId": "get_api_stores_store_menus_d4f27a",
                 "parameters": [
                     {
                         "name": "store",
@@ -1220,7 +2841,12 @@
                             "type": "integer"
                         }
                     }
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
             }
         },
         "/api/stores/{store}/noshow-policy": {
@@ -1228,16 +2854,8 @@
                 "tags": [
                     "Stores"
                 ],
-                "summary": "NoshowPolicyController show",
-                "operationId": "get_api_stores_store_noshow_policy",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    }
-                },
+                "summary": "상세 조회 (stores/{store}/noshow-policy)",
+                "operationId": "get_api_stores_store_noshow_policy_c17334",
                 "parameters": [
                     {
                         "name": "store",
@@ -1247,28 +2865,19 @@
                             "type": "integer"
                         }
                     }
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
             },
             "put": {
                 "tags": [
                     "Stores"
                 ],
-                "summary": "NoshowPolicyController update",
-                "operationId": "put_api_stores_store_noshow_policy",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "수정 (stores/{store}/noshow-policy)",
+                "operationId": "put_api_stores_store_noshow_policy_dd5771",
                 "parameters": [
                     {
                         "name": "store",
@@ -1279,6 +2888,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -1289,18 +2912,10 @@
         "/api/stores/{store}/post-categories": {
             "get": {
                 "tags": [
-                    "Stores"
+                    "Blog"
                 ],
-                "summary": "BlogTaxonomyController categories",
-                "operationId": "get_api_stores_store_post_categories",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    }
-                },
+                "summary": "categories (stores/{store}/post-categories)",
+                "operationId": "get_api_stores_store_post_categories_8fa679",
                 "parameters": [
                     {
                         "name": "store",
@@ -1310,28 +2925,19 @@
                             "type": "integer"
                         }
                     }
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
             },
             "post": {
                 "tags": [
-                    "Stores"
+                    "Blog"
                 ],
-                "summary": "BlogTaxonomyController storeCategory",
-                "operationId": "post_api_stores_store_post_categories",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "storeCategory (stores/{store}/post-categories)",
+                "operationId": "post_api_stores_store_post_categories_54fff8",
                 "parameters": [
                     {
                         "name": "store",
@@ -1342,6 +2948,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -1354,16 +2974,8 @@
                 "tags": [
                     "Stores"
                 ],
-                "summary": "ReservationController slots",
-                "operationId": "get_api_stores_store_reservation_slots",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    }
-                },
+                "summary": "slots (stores/{store}/reservation-slots)",
+                "operationId": "get_api_stores_store_reservation_slots_36d943",
                 "parameters": [
                     {
                         "name": "store",
@@ -1373,30 +2985,21 @@
                             "type": "integer"
                         }
                     }
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
             }
         },
         "/api/stores/{store}/reservations": {
-            "post": {
+            "get": {
                 "tags": [
-                    "Stores"
+                    "Reservations & Waitlist"
                 ],
-                "summary": "ReservationController store",
-                "operationId": "post_api_stores_store_reservations",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "목록 조회 (stores/{store}/reservations)",
+                "operationId": "get_api_stores_store_reservations_51a5c4",
                 "parameters": [
                     {
                         "name": "store",
@@ -1407,32 +3010,29 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
                     }
                 ]
             },
-            "get": {
+            "post": {
                 "tags": [
-                    "Stores"
+                    "Reservations & Waitlist"
                 ],
-                "summary": "OwnerReservationController index",
-                "operationId": "get_api_stores_store_reservations",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "등록 (stores/{store}/reservations)",
+                "operationId": "post_api_stores_store_reservations_f3886b",
                 "parameters": [
                     {
                         "name": "store",
@@ -1443,6 +3043,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -1453,18 +3067,10 @@
         "/api/stores/{store}/reviews": {
             "get": {
                 "tags": [
-                    "Stores"
+                    "Reviews"
                 ],
-                "summary": "ReviewController index",
-                "operationId": "get_api_stores_store_reviews",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    }
-                },
+                "summary": "목록 조회 (stores/{store}/reviews)",
+                "operationId": "get_api_stores_store_reviews_e08861",
                 "parameters": [
                     {
                         "name": "store",
@@ -1474,28 +3080,19 @@
                             "type": "integer"
                         }
                     }
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
             },
             "post": {
                 "tags": [
-                    "Stores"
+                    "Reviews"
                 ],
-                "summary": "ReviewController store",
-                "operationId": "post_api_stores_store_reviews",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "등록 (stores/{store}/reviews)",
+                "operationId": "post_api_stores_store_reviews_ade0f8",
                 "parameters": [
                     {
                         "name": "store",
@@ -1506,6 +3103,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -1516,18 +3127,10 @@
         "/api/stores/{store}/tags": {
             "get": {
                 "tags": [
-                    "Stores"
+                    "Blog"
                 ],
-                "summary": "BlogTaxonomyController tags",
-                "operationId": "get_api_stores_store_tags",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    }
-                },
+                "summary": "tags (stores/{store}/tags)",
+                "operationId": "get_api_stores_store_tags_bce77e",
                 "parameters": [
                     {
                         "name": "store",
@@ -1537,28 +3140,19 @@
                             "type": "integer"
                         }
                     }
-                ]
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    }
+                }
             },
             "post": {
                 "tags": [
-                    "Stores"
+                    "Blog"
                 ],
-                "summary": "BlogTaxonomyController storeTag",
-                "operationId": "post_api_stores_store_tags",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "storeTag (stores/{store}/tags)",
+                "operationId": "post_api_stores_store_tags_3b95e4",
                 "parameters": [
                     {
                         "name": "store",
@@ -1569,6 +3163,58 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stores/{store}/waitlists": {
+            "post": {
+                "tags": [
+                    "Reservations & Waitlist"
+                ],
+                "summary": "등록 (stores/{store}/waitlists)",
+                "operationId": "post_api_stores_store_waitlists_4df82f",
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -1579,24 +3225,10 @@
         "/api/tags/{tag}": {
             "put": {
                 "tags": [
-                    "Tags"
+                    "Blog"
                 ],
-                "summary": "BlogTaxonomyController updateTag",
-                "operationId": "put_api_tags_tag_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "updateTag (tags/{tag})",
+                "operationId": "put_api_tags_tag_cce4df",
                 "parameters": [
                     {
                         "name": "tag",
@@ -1607,6 +3239,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -1615,24 +3261,10 @@
             },
             "delete": {
                 "tags": [
-                    "Tags"
+                    "Blog"
                 ],
-                "summary": "BlogTaxonomyController destroyTag",
-                "operationId": "delete_api_tags_tag_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "destroyTag (tags/{tag})",
+                "operationId": "delete_api_tags_tag_69ddeb",
                 "parameters": [
                     {
                         "name": "tag",
@@ -1643,6 +3275,17 @@
                         }
                     }
                 ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -1653,22 +3296,22 @@
         "/api/uploads/images": {
             "post": {
                 "tags": [
-                    "Uploads"
+                    "General"
                 ],
-                "summary": "ImageUploadController store",
-                "operationId": "post_api_uploads_images",
+                "summary": "등록 (uploads/images)",
+                "operationId": "post_api_uploads_images_d0855d",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
                     }
                 },
                 "security": [
@@ -1679,24 +3322,21 @@
             }
         },
         "/api/users/me": {
-            "put": {
+            "get": {
                 "tags": [
-                    "Users"
+                    "Authentication"
                 ],
-                "summary": "ProfileController update",
-                "operationId": "put_api_users_me",
+                "summary": "내 정보 조회 (users/me)",
+                "operationId": "get_api_users_me_e929f0",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
                     }
                 },
                 "security": [
@@ -1705,24 +3345,24 @@
                     }
                 ]
             },
-            "get": {
+            "put": {
                 "tags": [
-                    "Users"
+                    "Authentication"
                 ],
-                "summary": "AuthController me",
-                "operationId": "get_api_users_me",
+                "summary": "수정 (users/me)",
+                "operationId": "put_api_users_me_c3acb7",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
                     }
                 },
                 "security": [
@@ -1735,22 +3375,19 @@
         "/api/users/me/coupons": {
             "get": {
                 "tags": [
-                    "Users"
+                    "My Page"
                 ],
-                "summary": "BenefitController coupons",
-                "operationId": "get_api_users_me_coupons",
+                "summary": "coupons (users/me/coupons)",
+                "operationId": "get_api_users_me_coupons_88d631",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
                     }
                 },
                 "security": [
@@ -1763,22 +3400,19 @@
         "/api/users/me/favorites": {
             "get": {
                 "tags": [
-                    "Users"
+                    "My Page"
                 ],
-                "summary": "FrontendFeatureController favorites",
-                "operationId": "get_api_users_me_favorites",
+                "summary": "favorites (users/me/favorites)",
+                "operationId": "get_api_users_me_favorites_a6d27e",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
                     }
                 },
                 "security": [
@@ -1791,22 +3425,19 @@
         "/api/users/me/inquiries": {
             "get": {
                 "tags": [
-                    "Users"
+                    "My Page"
                 ],
-                "summary": "FrontendFeatureController inquiries",
-                "operationId": "get_api_users_me_inquiries",
+                "summary": "inquiries (users/me/inquiries)",
+                "operationId": "get_api_users_me_inquiries_16dd09",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
                     }
                 },
                 "security": [
@@ -1817,22 +3448,22 @@
             },
             "post": {
                 "tags": [
-                    "Users"
+                    "My Page"
                 ],
-                "summary": "FrontendFeatureController storeInquiry",
-                "operationId": "post_api_users_me_inquiries",
+                "summary": "storeInquiry (users/me/inquiries)",
+                "operationId": "post_api_users_me_inquiries_f74731",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
                     }
                 },
                 "security": [
@@ -1845,24 +3476,10 @@
         "/api/users/me/inquiries/{inquiry}": {
             "get": {
                 "tags": [
-                    "Users"
+                    "My Page"
                 ],
-                "summary": "FrontendFeatureController showInquiry",
-                "operationId": "get_api_users_me_inquiries_inquiry_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "showInquiry (users/me/inquiries/{inquiry})",
+                "operationId": "get_api_users_me_inquiries_inquiry_a0f695",
                 "parameters": [
                     {
                         "name": "inquiry",
@@ -1873,6 +3490,17 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -1883,22 +3511,19 @@
         "/api/users/me/membership": {
             "get": {
                 "tags": [
-                    "Users"
+                    "My Page"
                 ],
-                "summary": "BenefitController membership",
-                "operationId": "get_api_users_me_membership",
+                "summary": "membership (users/me/membership)",
+                "operationId": "get_api_users_me_membership_efdb0c",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
                     }
                 },
                 "security": [
@@ -1911,22 +3536,19 @@
         "/api/users/me/membership-summary": {
             "get": {
                 "tags": [
-                    "Users"
+                    "My Page"
                 ],
-                "summary": "FrontendFeatureController membershipSummary",
-                "operationId": "get_api_users_me_membership_summary",
+                "summary": "membershipSummary (users/me/membership-summary)",
+                "operationId": "get_api_users_me_membership_summary_dc6cf9",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
                     }
                 },
                 "security": [
@@ -1939,22 +3561,19 @@
         "/api/users/me/orders": {
             "get": {
                 "tags": [
-                    "Users"
+                    "Orders & Payments"
                 ],
-                "summary": "OrderController index",
-                "operationId": "get_api_users_me_orders",
+                "summary": "목록 조회 (users/me/orders)",
+                "operationId": "get_api_users_me_orders_5b1862",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
                     }
                 },
                 "security": [
@@ -1967,24 +3586,10 @@
         "/api/users/me/orders/{order}": {
             "get": {
                 "tags": [
-                    "Users"
+                    "Orders & Payments"
                 ],
-                "summary": "OrderController show",
-                "operationId": "get_api_users_me_orders_order_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "상세 조회 (users/me/orders/{order})",
+                "operationId": "get_api_users_me_orders_order_05b841",
                 "parameters": [
                     {
                         "name": "order",
@@ -1995,6 +3600,17 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -2005,24 +3621,10 @@
         "/api/users/me/orders/{order}/cancel": {
             "post": {
                 "tags": [
-                    "Users"
+                    "Orders & Payments"
                 ],
-                "summary": "OrderController cancel",
-                "operationId": "post_api_users_me_orders_order_cancel",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "cancel (users/me/orders/{order}/cancel)",
+                "operationId": "post_api_users_me_orders_order_cancel_fef5ca",
                 "parameters": [
                     {
                         "name": "order",
@@ -2033,6 +3635,20 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -2043,22 +3659,22 @@
         "/api/users/me/password": {
             "put": {
                 "tags": [
-                    "Users"
+                    "My Page"
                 ],
-                "summary": "ProfileController updatePassword",
-                "operationId": "put_api_users_me_password",
+                "summary": "updatePassword (users/me/password)",
+                "operationId": "put_api_users_me_password_645472",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
                     }
                 },
                 "security": [
@@ -2071,22 +3687,19 @@
         "/api/users/me/preferences": {
             "get": {
                 "tags": [
-                    "Users"
+                    "My Page"
                 ],
-                "summary": "FrontendFeatureController preferences",
-                "operationId": "get_api_users_me_preferences",
+                "summary": "preferences (users/me/preferences)",
+                "operationId": "get_api_users_me_preferences_84bc43",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
                     }
                 },
                 "security": [
@@ -2097,22 +3710,22 @@
             },
             "put": {
                 "tags": [
-                    "Users"
+                    "My Page"
                 ],
-                "summary": "FrontendFeatureController updatePreferences",
-                "operationId": "put_api_users_me_preferences",
+                "summary": "updatePreferences (users/me/preferences)",
+                "operationId": "put_api_users_me_preferences_00896a",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
                     }
                 },
                 "security": [
@@ -2125,22 +3738,19 @@
         "/api/users/me/referral-code": {
             "get": {
                 "tags": [
-                    "Users"
+                    "My Page"
                 ],
-                "summary": "FrontendFeatureController referralCode",
-                "operationId": "get_api_users_me_referral_code",
+                "summary": "referralCode (users/me/referral-code)",
+                "operationId": "get_api_users_me_referral_code_e99712",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
                     }
                 },
                 "security": [
@@ -2153,22 +3763,22 @@
         "/api/users/me/referrals/claim": {
             "post": {
                 "tags": [
-                    "Users"
+                    "My Page"
                 ],
-                "summary": "FrontendFeatureController claimReferral",
-                "operationId": "post_api_users_me_referrals_claim",
+                "summary": "claimReferral (users/me/referrals/claim)",
+                "operationId": "post_api_users_me_referrals_claim_b69e24",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
                     }
                 },
                 "security": [
@@ -2181,22 +3791,19 @@
         "/api/users/me/reservations": {
             "get": {
                 "tags": [
-                    "Users"
+                    "Reservations & Waitlist"
                 ],
-                "summary": "ReservationController mine",
-                "operationId": "get_api_users_me_reservations",
+                "summary": "내 정보 조회 (users/me/reservations)",
+                "operationId": "get_api_users_me_reservations_9b4ced",
                 "responses": {
                     "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
+                        "description": "성공"
                     },
                     "401": {
-                        "description": "Unauthenticated"
+                        "description": "인증 필요"
                     },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "권한 없음"
                     }
                 },
                 "security": [
@@ -2209,24 +3816,10 @@
         "/api/users/me/reservations/{reservation}": {
             "get": {
                 "tags": [
-                    "Users"
+                    "Reservations & Waitlist"
                 ],
-                "summary": "ReservationController showMine",
-                "operationId": "get_api_users_me_reservations_reservation_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "showMine (users/me/reservations/{reservation})",
+                "operationId": "get_api_users_me_reservations_reservation_78f67e",
                 "parameters": [
                     {
                         "name": "reservation",
@@ -2237,6 +3830,17 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
@@ -2245,24 +3849,10 @@
             },
             "delete": {
                 "tags": [
-                    "Users"
+                    "Reservations & Waitlist"
                 ],
-                "summary": "ReservationController cancelMine",
-                "operationId": "delete_api_users_me_reservations_reservation_",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    },
-                    "422": {
-                        "description": "Validation failed"
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden"
-                    }
-                },
+                "summary": "cancelMine (users/me/reservations/{reservation})",
+                "operationId": "delete_api_users_me_reservations_reservation_a1c2c7",
                 "parameters": [
                     {
                         "name": "reservation",
@@ -2273,11 +3863,99 @@
                         }
                     }
                 ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
                 "security": [
                     {
                         "sanctum": []
                     }
                 ]
+            }
+        },
+        "/api/users/me/waitlists": {
+            "get": {
+                "tags": [
+                    "Reservations & Waitlist"
+                ],
+                "summary": "내 정보 조회 (users/me/waitlists)",
+                "operationId": "get_api_users_me_waitlists_11ce2c",
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/waitlists/{waitlist}": {
+            "delete": {
+                "tags": [
+                    "Reservations & Waitlist"
+                ],
+                "summary": "cancelMine (users/me/waitlists/{waitlist})",
+                "operationId": "delete_api_users_me_waitlists_waitlist_7bedc6",
+                "parameters": [
+                    {
+                        "name": "waitlist",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "성공"
+                    },
+                    "401": {
+                        "description": "인증 필요"
+                    },
+                    "403": {
+                        "description": "권한 없음"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/webhooks/toss-payments": {
+            "post": {
+                "tags": [
+                    "Orders & Payments"
+                ],
+                "summary": "결제 웹훅 (webhooks/toss-payments)",
+                "operationId": "post_api_webhooks_toss_payments_e754f8",
+                "responses": {
+                    "200": {
+                        "description": "성공"
+                    },
+                    "422": {
+                        "description": "입력값 또는 상태 검증 실패"
+                    }
+                }
             }
         }
     },
@@ -2292,8 +3970,60 @@
     },
     "tags": [
         {
+            "name": "Admin",
+            "description": "Admin"
+        },
+        {
+            "name": "Plans",
+            "description": "Plans"
+        },
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        },
+        {
+            "name": "Blog",
+            "description": "Blog"
+        },
+        {
             "name": "Stores",
             "description": "Stores"
+        },
+        {
+            "name": "General",
+            "description": "General"
+        },
+        {
+            "name": "Notifications",
+            "description": "Notifications"
+        },
+        {
+            "name": "Orders & Payments",
+            "description": "Orders & Payments"
+        },
+        {
+            "name": "Owner Inventory",
+            "description": "Owner Inventory"
+        },
+        {
+            "name": "Reviews",
+            "description": "Reviews"
+        },
+        {
+            "name": "Owner Staff",
+            "description": "Owner Staff"
+        },
+        {
+            "name": "Owner Sales",
+            "description": "Owner Sales"
+        },
+        {
+            "name": "Reservations & Waitlist",
+            "description": "Reservations & Waitlist"
+        },
+        {
+            "name": "My Page",
+            "description": "My Page"
         }
     ]
 }

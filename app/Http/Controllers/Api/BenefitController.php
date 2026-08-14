@@ -12,6 +12,12 @@ class BenefitController extends Controller
 {
     public function coupons(Request $request): JsonResponse
     {
+        UserCoupon::query()
+            ->where('user_id', $request->user()->id)
+            ->where('status', 'AVAILABLE')
+            ->where('expires_at', '<=', now())
+            ->update(['status' => 'EXPIRED']);
+
         $coupons = UserCoupon::query()
             ->with('coupon.store:id,name,slug')
             ->where('user_id', $request->user()->id)

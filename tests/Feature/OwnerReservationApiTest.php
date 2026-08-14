@@ -56,6 +56,23 @@ class OwnerReservationApiTest extends TestCase
             ->assertJsonValidationErrors('reason');
     }
 
+    public function test_completing_reservation_creates_verified_customer_visit(): void
+    {
+        [$owner, $store, $reservation] = $this->fixture();
+        Sanctum::actingAs($owner);
+
+        $this->patchJson("/api/reservations/{$reservation->id}/status", ['status' => 'CONFIRMED'])->assertOk();
+        $this->patchJson("/api/reservations/{$reservation->id}/status", ['status' => 'COMPLETED'])->assertOk();
+
+        $this->assertDatabaseHas('customer_visits', [
+            'reservation_id' => $reservation->id,
+            'user_id' => $reservation->user_id,
+            'store_id' => $store->id,
+            'type' => 'RESERVATION',
+            'confirmed_by' => $owner->id,
+        ]);
+    }
+
     public function test_invalid_status_transition_is_rejected(): void
     {
         [$owner, , $reservation] = $this->fixture('COMPLETED');

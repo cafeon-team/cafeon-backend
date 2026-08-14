@@ -4,29 +4,51 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BenefitController;
 use App\Http\Controllers\Api\BlogTaxonomyController;
 use App\Http\Controllers\Api\CommentController;
-use App\Http\Controllers\Api\ImageUploadController;
+use App\Http\Controllers\Api\DirectionController;
 use App\Http\Controllers\Api\FrontendFeatureController;
+use App\Http\Controllers\Api\ImageUploadController;
+use App\Http\Controllers\Api\MapStoreController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\NoshowPolicyController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OwnerDashboardController;
+use App\Http\Controllers\Api\OwnerInventoryController;
+use App\Http\Controllers\Api\OwnerMenuController;
+use App\Http\Controllers\Api\OwnerOrderController;
 use App\Http\Controllers\Api\OwnerReservationController;
+use App\Http\Controllers\Api\OwnerSalesController;
+use App\Http\Controllers\Api\OwnerSeatController;
+use App\Http\Controllers\Api\OwnerStaffController;
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PlanController;
 use App\Http\Controllers\Api\PostApiController;
 use App\Http\Controllers\Api\PostLikeController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\ReviewReplyController;
+use App\Http\Controllers\Api\SocialAuthController;
 use App\Http\Controllers\Api\StoreController;
+use App\Http\Controllers\Api\WaitlistController;
 use Illuminate\Support\Facades\Route;
 
 // API 명세서 기준 인증 경로
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/signup', [AuthController::class, 'register']);
+Route::post('/auth/owner/signup', [AuthController::class, 'registerOwner'])
+    ->middleware('throttle:10,1');
+Route::post('/auth/social/exchange', [SocialAuthController::class, 'exchange'])
+    ->middleware('throttle:10,1');
+Route::post('/webhooks/toss-payments', [PaymentController::class, 'webhook'])
+    ->middleware('throttle:120,1');
 
 // 기존 프론트엔드 호환용 경로(추후 제거 가능)
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
+Route::get('/map/stores', [MapStoreController::class, 'index']);
+Route::get('/directions', [DirectionController::class, 'show'])->middleware('throttle:30,1');
 Route::get('/stores', [StoreController::class, 'index']);
 Route::get('/stores/{store}', [StoreController::class, 'show']);
 Route::get('/stores/{store}/menus', [MenuController::class, 'index']);
@@ -37,6 +59,7 @@ Route::get('/stores/{store}/availability', [StoreController::class, 'availabilit
 Route::get('/stores/{store}/reservation-slots', [ReservationController::class, 'slots']);
 Route::get('/stores/{store}/noshow-policy', [NoshowPolicyController::class, 'show']);
 Route::get('/faqs', [FrontendFeatureController::class, 'faqs']);
+Route::get('/plans', [PlanController::class, 'index']);
 Route::get('/recommendations/stores', [FrontendFeatureController::class, 'recommendations']);
 Route::get('/stores/{store}/post-categories', [BlogTaxonomyController::class, 'categories']);
 Route::get('/stores/{store}/tags', [BlogTaxonomyController::class, 'tags']);
@@ -48,6 +71,16 @@ Route::get('/posts/{post}/comments', [CommentController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/uploads/images', [ImageUploadController::class, 'store']);
     Route::get('/users/me/favorites', [FrontendFeatureController::class, 'favorites']);
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::patch('/notifications/read-all', [NotificationController::class, 'readAll']);
+    Route::delete('/notifications', [NotificationController::class, 'destroyAll']);
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'read']);
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy']);
+    Route::get('/plans/me', [PlanController::class, 'mine']);
+    Route::post('/plans/subscribe', [PlanController::class, 'subscribe']);
+    Route::post('/plans/downgrade', [PlanController::class, 'downgrade']);
+    Route::get('/plans/billing-history', [PlanController::class, 'billingHistory']);
+    Route::post('/admin/subscriptions/{subscription}/activate', [PlanController::class, 'activate']);
     Route::post('/stores/{store}/favorite', [FrontendFeatureController::class, 'favorite']);
     Route::delete('/stores/{store}/favorite', [FrontendFeatureController::class, 'unfavorite']);
     Route::get('/users/me/preferences', [FrontendFeatureController::class, 'preferences']);
@@ -72,8 +105,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/stores/{store}/reviews', [ReviewController::class, 'store']);
     Route::put('/reviews/{review}', [ReviewController::class, 'update']);
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
+    Route::post('/owner/reviews/{review}/reply', [ReviewReplyController::class, 'store']);
+    Route::put('/owner/review-replies/{reply}', [ReviewReplyController::class, 'update']);
+    Route::delete('/owner/review-replies/{reply}', [ReviewReplyController::class, 'destroy']);
     Route::get('/users/me/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
+    Route::get('/payments/orders/{order}/checkout', [PaymentController::class, 'checkout']);
+    Route::post('/payments/confirm', [PaymentController::class, 'confirm'])->middleware('throttle:20,1');
+    Route::post('/payments/orders/{order}/refund', [PaymentController::class, 'refund'])->middleware('throttle:10,1');
     Route::get('/users/me/orders/{order}', [OrderController::class, 'show']);
     Route::post('/users/me/orders/{order}/cancel', [OrderController::class, 'cancel']);
     Route::get('/users/me', [AuthController::class, 'me']);
@@ -98,6 +137,34 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/posts/{post}/likes', [PostLikeController::class, 'store']);
     Route::delete('/posts/{post}/likes', [PostLikeController::class, 'destroy']);
     Route::get('/owner/stores/{store}/dashboard', [OwnerDashboardController::class, 'show']);
+    Route::get('/owner/stores/{store}/menus', [OwnerMenuController::class, 'index']);
+    Route::get('/owner/stores/{store}/orders', [OwnerOrderController::class, 'index']);
+    Route::patch('/owner/orders/{order}/status', [OwnerOrderController::class, 'updateStatus']);
+    Route::get('/owner/stores/{store}/inventory', [OwnerInventoryController::class, 'index']);
+    Route::post('/owner/stores/{store}/inventory', [OwnerInventoryController::class, 'store']);
+    Route::get('/owner/stores/{store}/inventory/transactions', [OwnerInventoryController::class, 'transactions']);
+    Route::put('/owner/inventory/{inventory}', [OwnerInventoryController::class, 'update']);
+    Route::post('/owner/inventory/{inventory}/transactions', [OwnerInventoryController::class, 'transact']);
+    Route::delete('/owner/inventory/{inventory}', [OwnerInventoryController::class, 'destroy']);
+    Route::get('/owner/stores/{store}/staff', [OwnerStaffController::class, 'index']);
+    Route::post('/owner/stores/{store}/staff', [OwnerStaffController::class, 'store']);
+    Route::patch('/owner/staff/{member}', [OwnerStaffController::class, 'update']);
+    Route::delete('/owner/staff/{member}', [OwnerStaffController::class, 'destroy']);
+    Route::get('/owner/stores/{store}/sales', [OwnerSalesController::class, 'index']);
+    Route::post('/owner/stores/{store}/menu-categories', [OwnerMenuController::class, 'storeCategory']);
+    Route::put('/owner/menu-categories/{category}', [OwnerMenuController::class, 'updateCategory']);
+    Route::delete('/owner/menu-categories/{category}', [OwnerMenuController::class, 'destroyCategory']);
+    Route::post('/owner/stores/{store}/menus', [OwnerMenuController::class, 'store']);
+    Route::put('/owner/menus/{menu}', [OwnerMenuController::class, 'update']);
+    Route::patch('/owner/menus/{menu}/availability', [OwnerMenuController::class, 'updateAvailability']);
+    Route::delete('/owner/menus/{menu}', [OwnerMenuController::class, 'destroy']);
+    Route::patch('/owner/stores/{store}/seats/{seat}', [OwnerSeatController::class, 'update']);
+    Route::patch('/owner/stores/{store}/availability', [OwnerSeatController::class, 'updateMany']);
+    Route::post('/stores/{store}/waitlists', [WaitlistController::class, 'store']);
+    Route::get('/users/me/waitlists', [WaitlistController::class, 'mine']);
+    Route::delete('/users/me/waitlists/{waitlist}', [WaitlistController::class, 'cancelMine']);
+    Route::get('/owner/stores/{store}/waitlists', [WaitlistController::class, 'ownerIndex']);
+    Route::patch('/owner/waitlists/{waitlist}/status', [WaitlistController::class, 'updateStatus']);
     Route::post('/reservations', [ReservationController::class, 'storeFromPayload']);
     Route::post('/stores/{store}/reservations', [ReservationController::class, 'store']);
     Route::get('/stores/{store}/reservations', [OwnerReservationController::class, 'index']);

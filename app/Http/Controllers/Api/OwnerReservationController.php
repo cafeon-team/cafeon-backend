@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CustomerVisit;
 use App\Models\Reservation;
 use App\Models\Store;
 use Illuminate\Http\JsonResponse;
@@ -76,6 +77,21 @@ class OwnerReservationController extends Controller
             }
 
             $locked->forceFill($changes)->save();
+
+            if ($validated['status'] === 'COMPLETED') {
+                CustomerVisit::firstOrCreate(
+                    ['reservation_id' => $locked->id],
+                    [
+                        'user_id' => $locked->user_id,
+                        'store_id' => $locked->store_id,
+                        'type' => 'RESERVATION',
+                        'visited_at' => $locked->completed_at,
+                        'confirmed_by' => $request->user()->id,
+                        'idempotency_key' => "reservation:{$locked->id}:completed",
+                    ],
+                );
+            }
+
             return $locked;
         });
 

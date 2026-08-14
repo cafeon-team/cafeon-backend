@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CustomerVisit;
 use App\Models\Order;
+use App\Models\Reservation;
 use App\Models\Review;
 use App\Models\Store;
 use Illuminate\Http\JsonResponse;
@@ -27,21 +29,19 @@ class ReviewController extends Controller
     public function store(Request $request, Store $store): JsonResponse
     {
         $validated = $this->validateReview($request, true);
-        $order = null;
-        if (! empty($validated['order_id'])) {
-            $order = Order::findOrFail($validated['order_id']);
-            abort_unless($order->user_id === $request->user()->id && $order->store_id === $store->id, 403);
-            abort_if(Review::where('order_id', $order->id)->exists(), 422, '이미 리뷰를 작성한 주문입니다.');
-        }
 
-        $review = DB::transaction(function () use ($request, $store, $validated, $order) {
+        $review = DB::transaction(function () use ($request, $store, $validated) {
+            $visit = $this->resolveCompletedVisit($request, $store, $validated);
+            abort_if(Review::where('customer_visit_id', $visit->id)->exists(), 422, '이미 해당 방문에 대한 리뷰를 작성했습니다.');
+
             $review = Review::create([
                 'store_id' => $store->id,
                 'user_id' => $request->user()->id,
-                'order_id' => $order?->id,
+                'order_id' => $visit->order_id,
+                'customer_visit_id' => $visit->id,
                 'rating' => $validated['rating'],
                 'content' => $validated['content'],
-                'is_verified_purchase' => $order !== null,
+                'is_verified_purchase' => true,
                 'status' => 'VISIBLE',
             ]);
             $this->syncImages($review, $validated['image_urls'] ?? []);
@@ -78,12 +78,56 @@ class ReviewController extends Controller
     private function validateReview(Request $request, bool $creating): array
     {
         return $request->validate([
-            'order_id' => [$creating ? 'nullable' : 'prohibited', 'integer', 'exists:orders,id'],
+            'customer_visit_id' => [$creating ? 'required_without_all:order_id,reservation_id' : 'prohibited', 'prohibits:order_id,reservation_id', 'integer', 'exists:customer_visits,id'],
+            'order_id' => [$creating ? 'required_without_all:customer_visit_id,reservation_id' : 'prohibited', 'prohibits:customer_visit_id,reservation_id', 'integer', 'exists:orders,id'],
+            'reservation_id' => [$creating ? 'required_without_all:customer_visit_id,order_id' : 'prohibited', 'prohibits:customer_visit_id,order_id', 'integer', 'exists:reservations,id'],
             'rating' => [$creating ? 'required' : 'sometimes', 'integer', 'between:1,5'],
             'content' => [$creating ? 'required' : 'sometimes', 'string', 'max:3000'],
             'image_urls' => ['sometimes', 'array', 'max:5'],
             'image_urls.*' => ['url', 'max:500'],
         ]);
+    }
+
+    private function resolveCompletedVisit(Request $request, Store $store, array $validated): CustomerVisit
+    {
+        if (! empty($validated['customer_visit_id'])) {
+            $visit = CustomerVisit::query()->lockForUpdate()->findOrFail($validated['customer_visit_id']);
+            abort_unless($visit->user_id === $request->user()->id && $visit->store_id === $store->id, 403);
+
+            return $visit;
+        }
+
+        if (! empty($validated['order_id'])) {
+            $order = Order::query()->lockForUpdate()->findOrFail($validated['order_id']);
+            abort_unless($order->user_id === $request->user()->id && $order->store_id === $store->id, 403);
+            abort_unless($order->status === 'COMPLETED', 422, '완료된 주문만 리뷰를 작성할 수 있습니다.');
+
+            return CustomerVisit::firstOrCreate(
+                ['order_id' => $order->id],
+                [
+                    'user_id' => $order->user_id,
+                    'store_id' => $order->store_id,
+                    'type' => 'PURCHASE',
+                    'visited_at' => $order->completed_at ?? now(),
+                    'idempotency_key' => "order:{$order->id}:completed",
+                ],
+            );
+        }
+
+        $reservation = Reservation::query()->lockForUpdate()->findOrFail($validated['reservation_id']);
+        abort_unless($reservation->user_id === $request->user()->id && $reservation->store_id === $store->id, 403);
+        abort_unless($reservation->status === 'COMPLETED', 422, '방문 완료된 예약만 리뷰를 작성할 수 있습니다.');
+
+        return CustomerVisit::firstOrCreate(
+            ['reservation_id' => $reservation->id],
+            [
+                'user_id' => $reservation->user_id,
+                'store_id' => $reservation->store_id,
+                'type' => 'RESERVATION',
+                'visited_at' => $reservation->completed_at ?? now(),
+                'idempotency_key' => "reservation:{$reservation->id}:completed",
+            ],
+        );
     }
 
     private function syncImages(Review $review, array $urls): void

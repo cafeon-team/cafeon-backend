@@ -90,6 +90,16 @@ class OrderService
                 'customer_request' => $data['customer_request'] ?? null,
             ]);
 
+            if ($finalAmount > 0) {
+                $order->payment()->create([
+                    'provider' => 'TOSS',
+                    'toss_order_id' => $order->order_number,
+                    'amount' => $finalAmount,
+                    'cancelled_amount' => 0,
+                    'status' => 'READY',
+                ]);
+            }
+
             foreach ($lines as $line) {
                 $order->items()->create([
                     'menu_id' => $line['menu']->id,
@@ -118,7 +128,69 @@ class OrderService
                 ]);
             }
 
-            return $order->load(['store:id,name,slug', 'items.menu:id,name,image_url']);
+            return $order->load(['store:id,name,slug', 'items.menu:id,name,image_url', 'payment']);
+        });
+    }
+
+    public function cancel(User $user, Order $order): Order
+    {
+        return DB::transaction(function () use ($user, $order) {
+            $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
+            abort_unless($lockedOrder->user_id === $user->id, 404);
+            abort_unless($lockedOrder->status === 'PENDING_PAYMENT', 422, '결제 대기 주문만 취소할 수 있습니다.');
+
+            if ($lockedOrder->point_used > 0) {
+                $account = CustomerStoreAccount::query()
+                    ->where('user_id', $lockedOrder->user_id)
+                    ->where('store_id', $lockedOrder->store_id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                $idempotencyKey = 'order-point-cancel-'.$lockedOrder->id;
+
+                if (! PointTransaction::where('idempotency_key', $idempotencyKey)->exists()) {
+                    $account->increment('point_balance', $lockedOrder->point_used);
+                    PointTransaction::create([
+                        'customer_store_account_id' => $account->id,
+                        'type' => 'CANCEL',
+                        'amount' => $lockedOrder->point_used,
+                        'balance_after' => $account->fresh()->point_balance,
+                        'reason' => 'ORDER_CANCEL',
+                        'reference_type' => Order::class,
+                        'reference_id' => $lockedOrder->id,
+                        'idempotency_key' => $idempotencyKey,
+                        'created_at' => now(),
+                    ]);
+                }
+            }
+
+            $userCoupon = UserCoupon::query()
+                ->where('used_order_id', $lockedOrder->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($userCoupon) {
+                $couponAvailable = $userCoupon->expires_at->isFuture()
+                    && $userCoupon->coupon()->where('is_active', true)
+                        ->where('valid_from', '<=', now())
+                        ->where('valid_until', '>', now())
+                        ->exists();
+
+                $userCoupon->forceFill([
+                    'status' => $couponAvailable ? 'AVAILABLE' : 'EXPIRED',
+                    'used_order_id' => null,
+                    'used_at' => null,
+                ])->save();
+            }
+
+            $lockedOrder->payment()->where('status', 'READY')->update([
+                'status' => 'CANCELLED',
+                'cancel_reason' => '결제 전 주문 취소',
+                'cancelled_at' => now(),
+            ]);
+
+            $lockedOrder->forceFill(['status' => 'CANCELLED', 'cancelled_at' => now()])->save();
+
+            return $lockedOrder->fresh();
         });
     }
 }

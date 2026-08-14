@@ -95,7 +95,8 @@ class StoreController extends Controller
             'congestion' => $congestion,
             'congestion_label' => $label,
             'reservation_enabled' => $store->reservation_enabled,
-            'updated_at' => now()->toIso8601String(),
+            'availability_updated_at' => $store->availability_updated_at?->toIso8601String(),
+            'updated_at' => $store->availability_updated_at?->toIso8601String(),
         ];
     }
 }

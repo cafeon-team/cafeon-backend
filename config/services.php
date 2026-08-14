@@ -35,4 +35,33 @@ return [
         ],
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+    ],
+
+    'kakao' => [
+        'client_id' => env('KAKAO_CLIENT_ID'),
+        'client_secret' => env('KAKAO_CLIENT_SECRET'),
+        'redirect' => env('KAKAO_REDIRECT_URI'),
+        'rest_api_key' => env('KAKAO_REST_API_KEY', env('KAKAO_CLIENT_ID')),
+    ],
+
+    'naver' => [
+        'client_id' => env('NAVER_CLIENT_ID'),
+        'client_secret' => env('NAVER_CLIENT_SECRET'),
+        'redirect' => env('NAVER_REDIRECT_URI'),
+    ],
+
+    'toss_payments' => [
+        'client_key' => env('TOSS_PAYMENTS_CLIENT_KEY'),
+        'secret_key' => env('TOSS_PAYMENTS_SECRET_KEY'),
+        'base_url' => env('TOSS_PAYMENTS_BASE_URL', 'https://api.tosspayments.com'),
+    ],
+
+    'social_login' => [
+        'frontend_callback' => env('FRONTEND_SOCIAL_CALLBACK_URL', '/test/social-login/callback'),
+    ],
+
 ];

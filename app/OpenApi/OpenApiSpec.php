@@ -19,17 +19,4 @@ use OpenApi\Attributes as OA;
     scheme: 'bearer',
     bearerFormat: 'Token'
 )]
-final class OpenApiSpec
-{
-    #[OA\Get(
-        path: '/api/stores',
-        summary: 'Store list',
-        tags: ['Stores'],
-        responses: [
-            new OA\Response(response: 200, description: 'Successful response'),
-        ]
-    )]
-    public function stores(): void
-    {
-    }
-}
+final class OpenApiSpec {}

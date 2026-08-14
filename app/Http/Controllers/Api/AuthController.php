@@ -3,15 +3,71 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Store;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function registerOwner(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'min:2', 'max:50'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'confirmed', Password::min(8)->letters()->numbers()],
+            'phone' => ['required', 'string', 'max:30'],
+            'store_name' => ['required', 'string', 'min:2', 'max:100'],
+            'store_address' => ['nullable', 'string', 'max:255'],
+            'store_detail_address' => ['nullable', 'string', 'max:255'],
+            'store_phone' => ['nullable', 'string', 'max:30'],
+            'terms_accepted' => ['accepted'],
+        ]);
+
+        [$user, $store, $membership] = DB::transaction(function () use ($validated): array {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => strtolower($validated['email']),
+                'password' => $validated['password'],
+                'phone' => $validated['phone'],
+                'role' => 'OWNER',
+                'is_active' => true,
+            ]);
+
+            $store = Store::create([
+                'name' => $validated['store_name'],
+                'slug' => $this->uniqueStoreSlug($validated['store_name']),
+                'address' => $validated['store_address'] ?? null,
+                'detail_address' => $validated['store_detail_address'] ?? null,
+                'phone' => $validated['store_phone'] ?? null,
+                'reservation_enabled' => true,
+                'is_active' => true,
+            ]);
+
+            $membership = $store->members()->create([
+                'user_id' => $user->id,
+                'role' => 'OWNER',
+                'is_active' => true,
+            ]);
+
+            return [$user, $store, $membership];
+        });
+
+        return response()->json([
+            'message' => '사장님 회원가입이 완료되었습니다.',
+            'token' => $user->createToken('owner-frontend')->plainTextToken,
+            'token_type' => 'Bearer',
+            'user' => $user,
+            'store' => $store,
+            'membership' => $membership,
+        ], 201);
+    }
+
     public function register(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -82,5 +138,17 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()?->delete();
 
         return response()->json(['message' => 'Logged out.']);
+    }
+
+    private function uniqueStoreSlug(string $storeName): string
+    {
+        $base = Str::slug($storeName) ?: 'store';
+        $slug = $base;
+
+        while (Store::withTrashed()->where('slug', $slug)->exists()) {
+            $slug = $base.'-'.Str::lower(Str::random(6));
+        }
+
+        return $slug;
     }
 }
