@@ -62,6 +62,10 @@ return [
 
     'social_login' => [
         'frontend_callback' => env('FRONTEND_SOCIAL_CALLBACK_URL', '/test/social-login/callback'),
+        'frontend_callbacks' => [
+            'customer' => env('FRONTEND_SOCIAL_CALLBACK_URL_CUSTOMER'),
+            'owner' => env('FRONTEND_SOCIAL_CALLBACK_URL_OWNER'),
+        ],
     ],
 
 ];

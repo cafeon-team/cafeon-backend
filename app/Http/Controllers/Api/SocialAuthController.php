@@ -19,34 +19,47 @@ class SocialAuthController extends Controller
 {
     private const PROVIDERS = ['google', 'kakao', 'naver'];
 
-    public function redirect(string $provider): RedirectResponse
+    private const ROLES = ['CUSTOMER', 'OWNER'];
+
+    public function redirect(Request $request, string $provider): RedirectResponse
     {
         $this->ensureSupported($provider);
         abort_unless(filled(config("services.{$provider}.client_id")), 503, "{$provider} OAuth credentials are not configured.");
 
+        $role = $this->requestedRole($request);
+        $request->session()->put($this->roleSessionKey($provider), $role);
+
         return Socialite::driver($provider)->redirect();
     }
 
-    public function callback(string $provider): RedirectResponse
+    public function callback(Request $request, string $provider): RedirectResponse
     {
         $this->ensureSupported($provider);
+        $role = $request->session()->pull($this->roleSessionKey($provider), 'CUSTOMER');
 
         try {
             $socialUser = Socialite::driver($provider)->user();
-            $user = $this->resolveUser($provider, $socialUser);
+            $user = $this->resolveUser($provider, $socialUser, $role);
             abort_if(! $user->is_active, 403, '비활성화된 계정입니다.');
+
+            $this->ensureMatchingRole($user, $role);
 
             $user->forceFill(['last_login_at' => now()])->save();
             $code = Str::random(64);
             Cache::put($this->cacheKey($code), $user->getKey(), now()->addMinutes(5));
 
-            return redirect()->away($this->callbackUrl(['code' => $code, 'provider' => $provider]));
+            return redirect()->away($this->callbackUrl($role, [
+                'code' => $code,
+                'provider' => $provider,
+                'role' => strtolower($role),
+            ]));
         } catch (Throwable $exception) {
             report($exception);
 
-            return redirect()->away($this->callbackUrl([
+            return redirect()->away($this->callbackUrl($role, [
                 'error' => 'social_login_failed',
                 'message' => '소셜 로그인 처리에 실패했습니다.',
+                'role' => strtolower($role),
             ]));
         }
     }
@@ -70,9 +83,9 @@ class SocialAuthController extends Controller
         ]);
     }
 
-    private function resolveUser(string $provider, SocialiteUser $socialUser): User
+    private function resolveUser(string $provider, SocialiteUser $socialUser, string $role): User
     {
-        return DB::transaction(function () use ($provider, $socialUser): User {
+        return DB::transaction(function () use ($provider, $socialUser, $role): User {
             $providerId = (string) $socialUser->getId();
             $account = SocialAccount::query()
                 ->where('provider', $provider)
@@ -86,13 +99,17 @@ class SocialAuthController extends Controller
             $providerEmail = $socialUser->getEmail();
             $user = $providerEmail ? User::where('email', $providerEmail)->first() : null;
 
+            if ($user) {
+                $this->ensureMatchingRole($user, $role);
+            }
+
             if (! $user) {
                 $user = User::create([
                     'name' => $socialUser->getName() ?: $socialUser->getNickname() ?: "{$provider} 사용자",
                     'email' => $providerEmail ?: "{$provider}.{$providerId}@social.cafeon.local",
                     'password' => Str::random(64),
                     'profile_image_url' => $socialUser->getAvatar(),
-                    'role' => 'CUSTOMER',
+                    'role' => $role,
                     'is_active' => true,
                     'email_verified_at' => $providerEmail ? now() : null,
                 ]);
@@ -113,14 +130,39 @@ class SocialAuthController extends Controller
         abort_unless(in_array($provider, self::PROVIDERS, true), 404);
     }
 
+    private function ensureMatchingRole(User $user, string $role): void
+    {
+        abort_if(
+            $user->role !== $role,
+            403,
+            $role === 'OWNER'
+                ? '손님 계정은 사장님 로그인으로 사용할 수 없습니다.'
+                : '사장님 계정은 손님 로그인으로 사용할 수 없습니다.'
+        );
+    }
+
     private function cacheKey(string $code): string
     {
         return 'social-login:'.hash('sha256', $code);
     }
 
-    private function callbackUrl(array $parameters): string
+    private function requestedRole(Request $request): string
     {
-        $url = config('services.social_login.frontend_callback');
+        $role = strtoupper((string) $request->query('role', 'CUSTOMER'));
+        abort_unless(in_array($role, self::ROLES, true), 422, 'role은 customer 또는 owner여야 합니다.');
+
+        return $role;
+    }
+
+    private function roleSessionKey(string $provider): string
+    {
+        return "social-login.{$provider}.role";
+    }
+
+    private function callbackUrl(string $role, array $parameters): string
+    {
+        $url = config('services.social_login.frontend_callbacks.'.strtolower($role))
+            ?: config('services.social_login.frontend_callback');
         $separator = str_contains($url, '?') ? '&' : '?';
 
         return $url.$separator.http_build_query($parameters);
