@@ -36,7 +36,7 @@ class AuthController extends Controller
                 'email' => strtolower($validated['email']),
                 'password' => $validated['password'],
                 'phone' => $validated['phone'],
-                'role' => 'OWNER',
+                'role' => 'ADMIN',
                 'is_active' => true,
             ]);
 
@@ -103,6 +103,21 @@ class AuthController extends Controller
 
     public function login(Request $request): JsonResponse
     {
+        return $this->loginForRole($request, 'CUSTOMER');
+    }
+
+    public function loginCustomer(Request $request): JsonResponse
+    {
+        return $this->loginForRole($request, 'CUSTOMER');
+    }
+
+    public function loginOwner(Request $request): JsonResponse
+    {
+        return $this->loginForRole($request, 'ADMIN');
+    }
+
+    private function loginForRole(Request $request, string $expectedRole): JsonResponse
+    {
         $this->normalizeEmail($request);
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -119,6 +134,14 @@ class AuthController extends Controller
 
         if (! $user->is_active) {
             return response()->json(['message' => 'This account is inactive.'], 403);
+        }
+
+        if (strtoupper((string) $user->role) !== $expectedRole) {
+            $message = $expectedRole === 'ADMIN'
+                ? '손님 계정은 사장님 화면에서 로그인할 수 없습니다.'
+                : '사장님 계정은 손님 화면에서 로그인할 수 없습니다.';
+
+            return response()->json(['message' => $message], 403);
         }
 
         $user->forceFill(['last_login_at' => now()])->save();
