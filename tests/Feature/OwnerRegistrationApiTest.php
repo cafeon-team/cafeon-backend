@@ -24,14 +24,14 @@ class OwnerRegistrationApiTest extends TestCase
 
         $response->assertCreated()
             ->assertJsonStructure(['token', 'token_type', 'user', 'store', 'membership'])
-            ->assertJsonPath('user.role', 'OWNER')
+            ->assertJsonPath('user.role', 'ADMIN')
             ->assertJsonPath('store.name', '카페온 강남점')
             ->assertJsonPath('store.address', null)
             ->assertJsonPath('membership.role', 'OWNER');
 
         $userId = $response->json('user.id');
         $storeId = $response->json('store.id');
-        $this->assertDatabaseHas('users', ['id' => $userId, 'email' => 'owner@cafeon.test', 'role' => 'OWNER']);
+        $this->assertDatabaseHas('users', ['id' => $userId, 'email' => 'owner@cafeon.test', 'role' => 'ADMIN']);
         $this->assertDatabaseHas('stores', ['id' => $storeId, 'name' => '카페온 강남점']);
         $this->assertDatabaseHas('store_members', [
             'store_id' => $storeId, 'user_id' => $userId, 'role' => 'OWNER', 'is_active' => true,

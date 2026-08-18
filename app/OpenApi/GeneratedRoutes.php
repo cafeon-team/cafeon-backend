@@ -64,11 +64,34 @@ final class GeneratedRoutes
     #[OA\Post(
         path: '/api/auth/login',
         operationId: 'post_api_auth_login_3d54ae',
-        summary: '로그인 (auth/login)',
+        summary: '손님 로그인(기존 호환 경로) (auth/login)',
         tags: ['Authentication'],
-        responses: [new OA\Response(response: 200, description: '성공'), new OA\Response(response: 422, description: '입력값 또는 상태 검증 실패')]
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['email', 'password'], properties: [new OA\Property(property: 'email', type: 'string', format: 'email'), new OA\Property(property: 'password', type: 'string', format: 'password')])),
+        responses: [new OA\Response(response: 200, description: '손님 로그인 성공'), new OA\Response(response: 403, description: '사장님 계정 또는 비활성 계정'), new OA\Response(response: 422, description: '입력값 또는 로그인 정보 검증 실패')]
     )]
     public function post_api_auth_login_3d54ae(): void {}
+
+    #[OA\Post(
+        path: '/api/auth/customer/login',
+        operationId: 'post_api_auth_customer_login',
+        summary: '손님 로그인',
+        description: 'CUSTOMER 권한 계정만 로그인할 수 있습니다.',
+        tags: ['Authentication'],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['email', 'password'], properties: [new OA\Property(property: 'email', type: 'string', format: 'email'), new OA\Property(property: 'password', type: 'string', format: 'password')])),
+        responses: [new OA\Response(response: 200, description: '손님 로그인 성공'), new OA\Response(response: 403, description: '사장님 계정 또는 비활성 계정'), new OA\Response(response: 422, description: '입력값 또는 로그인 정보 검증 실패'), new OA\Response(response: 429, description: '요청 횟수 초과')]
+    )]
+    public function post_api_auth_customer_login(): void {}
+
+    #[OA\Post(
+        path: '/api/auth/owner/login',
+        operationId: 'post_api_auth_owner_login',
+        summary: '사장님 로그인',
+        description: 'ADMIN 권한 계정만 로그인할 수 있습니다.',
+        tags: ['Authentication'],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['email', 'password'], properties: [new OA\Property(property: 'email', type: 'string', format: 'email'), new OA\Property(property: 'password', type: 'string', format: 'password')])),
+        responses: [new OA\Response(response: 200, description: '사장님 로그인 성공'), new OA\Response(response: 403, description: '손님 계정 또는 비활성 계정'), new OA\Response(response: 422, description: '입력값 또는 로그인 정보 검증 실패'), new OA\Response(response: 429, description: '요청 횟수 초과')]
+    )]
+    public function post_api_auth_owner_login(): void {}
 
     #[OA\Post(
         path: '/api/auth/owner/signup',

@@ -35,6 +35,8 @@ use Illuminate\Support\Facades\Route;
 
 // API 명세서 기준 인증 경로
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+Route::post('/auth/customer/login', [AuthController::class, 'loginCustomer'])->middleware('throttle:5,1');
+Route::post('/auth/owner/login', [AuthController::class, 'loginOwner'])->middleware('throttle:5,1');
 Route::post('/auth/signup', [AuthController::class, 'register']);
 Route::post('/auth/owner/signup', [AuthController::class, 'registerOwner'])
     ->middleware('throttle:10,1');
