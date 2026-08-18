@@ -34,7 +34,7 @@ use App\Http\Controllers\Api\WaitlistController;
 use Illuminate\Support\Facades\Route;
 
 // API 명세서 기준 인증 경로
-Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/auth/signup', [AuthController::class, 'register']);
 Route::post('/auth/owner/signup', [AuthController::class, 'registerOwner'])
     ->middleware('throttle:10,1');
@@ -44,7 +44,7 @@ Route::post('/webhooks/toss-payments', [PaymentController::class, 'webhook'])
     ->middleware('throttle:120,1');
 
 // 기존 프론트엔드 호환용 경로(추후 제거 가능)
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::get('/map/stores', [MapStoreController::class, 'index']);

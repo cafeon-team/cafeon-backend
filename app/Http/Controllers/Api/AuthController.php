@@ -17,10 +17,11 @@ class AuthController extends Controller
 {
     public function registerOwner(Request $request): JsonResponse
     {
+        $this->normalizeEmail($request);
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:50'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'confirmed', Password::min(8)->letters()->numbers()],
+            'password' => ['required', 'string', 'max:128', 'confirmed', Password::min(8)->letters()->numbers()],
             'phone' => ['required', 'string', 'max:30'],
             'store_name' => ['required', 'string', 'min:2', 'max:100'],
             'store_address' => ['nullable', 'string', 'max:255'],
@@ -70,10 +71,11 @@ class AuthController extends Controller
 
     public function register(Request $request): JsonResponse
     {
+        $this->normalizeEmail($request);
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:50'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', Password::min(8)->letters()->numbers()],
+            'password' => ['required', 'string', 'max:128', Password::min(8)->letters()->numbers()],
             'terms_accepted' => ['accepted'],
         ], [
             'email.unique' => '이미 가입된 이메일입니다.',
@@ -101,9 +103,10 @@ class AuthController extends Controller
 
     public function login(Request $request): JsonResponse
     {
+        $this->normalizeEmail($request);
         $credentials = $request->validate([
             'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
+            'password' => ['required', 'string', 'max:128'],
         ]);
 
         $user = User::where('email', $credentials['email'])->first();
@@ -150,5 +153,12 @@ class AuthController extends Controller
         }
 
         return $slug;
+    }
+
+    private function normalizeEmail(Request $request): void
+    {
+        if (is_string($request->input('email'))) {
+            $request->merge(['email' => Str::lower(trim($request->input('email')))]);
+        }
     }
 }
