@@ -29,7 +29,7 @@ class SocialAuthApiTest extends TestCase
 
     public function test_owner_social_login_creates_owner_and_uses_owner_callback(): void
     {
-        config(['services.google.client_id' => 'configured']);
+        $this->configureProvider('google');
 
         $this->get('/auth/social/google/redirect?role=owner')->assertRedirect();
 
@@ -50,14 +50,14 @@ class SocialAuthApiTest extends TestCase
 
     public function test_social_login_rejects_unknown_role(): void
     {
-        config(['services.google.client_id' => 'configured']);
+        $this->configureProvider('google');
 
         $this->get('/auth/social/google/redirect?role=admin')->assertUnprocessable();
     }
 
     public function test_customer_account_cannot_log_in_through_owner_flow(): void
     {
-        config(['services.google.client_id' => 'configured']);
+        $this->configureProvider('google');
         $user = User::factory()->create(['email' => 'existing@example.com', 'role' => 'CUSTOMER']);
         $user->socialAccounts()->create([
             'provider' => 'google',
@@ -82,7 +82,7 @@ class SocialAuthApiTest extends TestCase
 
     public function test_existing_customer_email_is_not_linked_during_owner_flow(): void
     {
-        config(['services.google.client_id' => 'configured']);
+        $this->configureProvider('google');
         $user = User::factory()->create(['email' => 'same-email@example.com', 'role' => 'CUSTOMER']);
 
         $this->get('/auth/social/google/redirect?role=owner')->assertRedirect();
@@ -105,6 +105,18 @@ class SocialAuthApiTest extends TestCase
         config(['services.naver.client_id' => null]);
 
         $this->get('/auth/social/naver/redirect')->assertServiceUnavailable();
+    }
+
+    public function test_redirect_reports_incomplete_provider_configuration(): void
+    {
+        config([
+            'services.kakao.client_id' => 'configured',
+            'services.kakao.client_secret' => null,
+            'services.kakao.redirect' => null,
+        ]);
+
+        $this->get('/auth/social/kakao/redirect')
+            ->assertServiceUnavailable();
     }
 
     public function test_local_social_login_view_is_available(): void
@@ -143,6 +155,15 @@ class SocialAuthApiTest extends TestCase
             'provider' => $provider,
             'provider_user_id' => $providerId,
             'provider_email' => $email,
+        ]);
+    }
+
+    private function configureProvider(string $provider): void
+    {
+        config([
+            "services.{$provider}.client_id" => 'test-client-id',
+            "services.{$provider}.client_secret" => 'test-client-secret',
+            "services.{$provider}.redirect" => "http://localhost/auth/social/{$provider}/callback",
         ]);
     }
 }

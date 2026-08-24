@@ -10,7 +10,7 @@ use OpenApi\Attributes as OA;
     description: 'CafeOn backend API documentation'
 )]
 #[OA\Server(
-    url: 'http://127.0.0.1:8001',
+    url: 'http://127.0.0.1:8000',
     description: 'Local development server'
 )]
 #[OA\SecurityScheme(

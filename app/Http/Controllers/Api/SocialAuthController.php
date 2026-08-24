@@ -24,7 +24,7 @@ class SocialAuthController extends Controller
     public function redirect(Request $request, string $provider): RedirectResponse
     {
         $this->ensureSupported($provider);
-        abort_unless(filled(config("services.{$provider}.client_id")), 503, "{$provider} OAuth credentials are not configured.");
+        $this->ensureConfigured($provider);
 
         $role = $this->requestedRole($request);
         $request->session()->put($this->roleSessionKey($provider), $role);
@@ -128,6 +128,23 @@ class SocialAuthController extends Controller
     private function ensureSupported(string $provider): void
     {
         abort_unless(in_array($provider, self::PROVIDERS, true), 404);
+    }
+
+    private function ensureConfigured(string $provider): void
+    {
+        $missing = collect(['client_id', 'client_secret', 'redirect'])
+            ->reject(fn (string $key): bool => filled(config("services.{$provider}.{$key}")))
+            ->values();
+
+        abort_if(
+            $missing->isNotEmpty(),
+            503,
+            sprintf(
+                '%s OAuth 설정이 누락되었습니다: %s',
+                ucfirst($provider),
+                $missing->implode(', ')
+            )
+        );
     }
 
     private function ensureMatchingRole(User $user, string $role): void

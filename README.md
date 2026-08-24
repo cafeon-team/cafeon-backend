@@ -89,7 +89,7 @@ cp .env.example .env
 APP_NAME=CafeON
 APP_ENV=local
 APP_DEBUG=true
-APP_URL=http://127.0.0.1:8001
+APP_URL=http://127.0.0.1:8000
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -126,16 +126,16 @@ npm run build
 ### 가장 간단한 실행 방법
 
 ```bash
-php artisan serve --port=8001
+php artisan serve --port=8000
 ```
 
 브라우저에서 아래 주소로 접속합니다.
 
-- 기본 화면: <http://127.0.0.1:8001>
-- Swagger API 문서: <http://127.0.0.1:8001/api/documentation>
-- MVC 기능 확인 화면: <http://127.0.0.1:8001/test/mvc>
-- 블로그 API 확인 화면: <http://127.0.0.1:8001/test/mvc/blog-api>
-- 소셜 로그인 확인 화면: <http://127.0.0.1:8001/test/social-login>
+- 기본 화면: <http://127.0.0.1:8000>
+- Swagger API 문서: <http://127.0.0.1:8000/api/documentation>
+- MVC 기능 확인 화면: <http://127.0.0.1:8000/test/mvc>
+- 블로그 API 확인 화면: <http://127.0.0.1:8000/test/mvc/blog-api>
+- 소셜 로그인 확인 화면: <http://127.0.0.1:8000/test/social-login>
 
 `/test`로 시작하는 확인용 화면은 `.env`의 `APP_ENV`가 `local` 또는 `testing`일 때만 열립니다.
 
@@ -145,11 +145,13 @@ php artisan serve --port=8001
 composer run dev
 ```
 
-이 명령은 Laravel 서버, 작업 큐, 실시간 로그, Vite 개발 서버를 동시에 실행합니다. 이 프로젝트의 `composer.json`에는 서버 포트가 따로 지정되어 있지 않으므로 보통 `http://127.0.0.1:8000`에서 시작합니다. `.env.example`에 적힌 콜백 주소는 8001 포트를 사용하므로, 특히 소셜 로그인을 확인할 때는 위의 `php artisan serve --port=8001` 방식으로 실행하세요.
+이 명령은 Laravel 서버, 작업 큐, 실시간 로그, Vite 개발 서버를 동시에 실행합니다. 이 프로젝트는 `http://127.0.0.1:8000`을 기준으로 사용합니다.
 
 서버를 종료하려면 실행 중인 터미널에서 `Ctrl + C`를 누릅니다.
 
 ## API 사용 방법
+
+프런트엔드 연결, Bearer 토큰 인증, 소셜 로그인 및 운영 CORS 설정은 [`docs/FRONTEND_INTEGRATION.md`](docs/FRONTEND_INTEGRATION.md)를 참고합니다.
 
 API 주소는 기본적으로 `/api`로 시작합니다. 예를 들면 다음과 같습니다.
 
@@ -173,7 +175,7 @@ Accept: application/json
 php artisan swagger:generate-routes
 ```
 
-문서를 생성한 뒤 <http://127.0.0.1:8001/api/documentation>에 접속합니다.
+문서를 생성한 뒤 <http://127.0.0.1:8000/api/documentation>에 접속합니다.
 
 ## 테스트 실행하기
 
@@ -221,17 +223,28 @@ php artisan posts:publish-scheduled
 
 ## 소셜 로그인 설정
 
-Google 또는 Kakao 로그인을 사용하려면 각 개발자 콘솔에서 발급받은 값을 `.env`에 입력합니다.
+Google, Kakao 또는 Naver 로그인을 사용하려면 먼저 `.env`를 만들고 앱 키를 생성한 뒤 각 개발자 콘솔에서 발급받은 값을 입력합니다.
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
 ```env
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-GOOGLE_REDIRECT_URI=http://127.0.0.1:8001/auth/social/google/callback
+GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/auth/social/google/callback
 
 KAKAO_CLIENT_ID=
 KAKAO_CLIENT_SECRET=
-KAKAO_REDIRECT_URI=http://127.0.0.1:8001/auth/social/kakao/callback
+KAKAO_REDIRECT_URI=http://127.0.0.1:8000/auth/social/kakao/callback
+
+NAVER_CLIENT_ID=
+NAVER_CLIENT_SECRET=
+NAVER_REDIRECT_URI=http://127.0.0.1:8000/auth/social/naver/callback
 ```
+
+각 개발자 콘솔에도 위 콜백 URL을 한 글자까지 동일하게 등록해야 합니다. 설정 변경 후에는 `php artisan optimize:clear`를 실행하세요.
 
 소셜 로그인을 사용하지 않는다면 로컬 실행 단계에서는 비워 두어도 됩니다.
 
@@ -239,7 +252,7 @@ KAKAO_REDIRECT_URI=http://127.0.0.1:8001/auth/social/kakao/callback
 
 | 명령어 | 설명 |
 | --- | --- |
-| `php artisan serve --port=8001` | 로컬 서버 실행 |
+| `php artisan serve --port=8000` | 로컬 서버 실행 |
 | `php artisan migrate` | 새 DB 변경 사항 적용 |
 | `php artisan migrate:fresh` | 모든 테이블을 지우고 다시 생성하므로 주의 |
 | `php artisan route:list` | 등록된 URL 목록 확인 |
