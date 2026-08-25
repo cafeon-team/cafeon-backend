@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Store;
 use App\Models\User;
+use App\Services\OwnerProfileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,8 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function __construct(private readonly OwnerProfileService $ownerProfiles) {}
+
     public function registerOwner(Request $request): JsonResponse
     {
         $this->normalizeEmail($request);
@@ -64,6 +67,7 @@ class AuthController extends Controller
             'token' => $user->createToken('owner-frontend')->plainTextToken,
             'token_type' => 'Bearer',
             'user' => $user,
+            'store_id' => $store->id,
             'store' => $store,
             'membership' => $membership,
         ], 201);
@@ -147,15 +151,25 @@ class AuthController extends Controller
         $user->forceFill(['last_login_at' => now()])->save();
         $token = $user->createToken('frontend')->plainTextToken;
 
-        return response()->json([
+        $response = [
             'token' => $token,
             'token_type' => 'Bearer',
             'user' => $user,
-        ]);
+        ];
+
+        if ($expectedRole === 'ADMIN') {
+            $response = array_merge($response, $this->ownerContextWithoutUser($user));
+        }
+
+        return response()->json($response);
     }
 
     public function me(Request $request): JsonResponse
     {
+        if (strtoupper((string) $request->user()->role) === 'ADMIN') {
+            return response()->json($this->ownerProfiles->payload($request->user()));
+        }
+
         return response()->json(['user' => $request->user()]);
     }
 
@@ -183,5 +197,13 @@ class AuthController extends Controller
         if (is_string($request->input('email'))) {
             $request->merge(['email' => Str::lower(trim($request->input('email')))]);
         }
+    }
+
+    private function ownerContextWithoutUser(User $user): array
+    {
+        $payload = $this->ownerProfiles->payload($user);
+        unset($payload['user']);
+
+        return $payload;
     }
 }

@@ -1,0 +1,64 @@
+CafeOn 지도 카페·핀 연동 변경사항 (2026-08-20)
+
+1. 현재 지도 영역의 카카오 카페 검색
+
+GET /api/map/kakao-cafes
+  ?sw_lat={남서 위도}&sw_lng={남서 경도}
+  &ne_lat={북동 위도}&ne_lng={북동 경도}
+
+응답 data의 각 항목을 지도 핀으로 표시합니다.
+
+- source: "KAKAO"
+- kakao_place_id: 핀 상세 조회용 ID
+- name, latitude, longitude, address, road_address, phone, place_url
+
+카페가 없는 경우:
+
+- meta.has_cafes = false
+- meta.allow_manual_location = true
+- meta.manual_location.latitude/longitude = 현재 지도 영역의 중심 좌표
+
+프론트는 allow_manual_location이 true이면 "이 위치에 내 매장 등록" 버튼이나
+지도 중심 핀을 보여주면 됩니다.
+
+2. 검색되지 않는 사장님 매장의 위치 저장
+
+PATCH /api/owner/store/location
+Authorization: Bearer {owner_token}
+
+{
+  "latitude": 35.8714,
+  "longitude": 128.6014,
+  "address": "대구광역시 중구",
+  "detail_address": "상세 위치"
+}
+
+저장 후 GET /api/map/stores의 지도 범위 안에 해당 매장이 CAFEON 핀으로
+표시됩니다. 좌표는 지도 클릭 또는 드래그가 끝난 위치를 사용합니다.
+
+3. 핀 클릭 상세 조회
+
+CafeOn DB 매장 핀:
+GET /api/map/pins/CAFEON/{store_id}
+
+카카오 검색 핀:
+GET /api/map/pins/KAKAO/{kakao_place_id}
+
+CAFEON 핀 응답에는 좌표, 주소, 혼잡도, 좌석, 평점뿐 아니라 description,
+phone, hours, business_hours, tags, menus가 포함됩니다.
+
+KAKAO 핀 응답에는 카카오 검색 결과의 name, 좌표, 주소, 전화번호,
+place_url, category_name이 포함됩니다. 카카오 핀 캐시는 10분이므로 404와
+"핀 정보가 만료" 메시지가 오면 현재 지도 영역을 다시 검색한 후 재시도합니다.
+
+4. 권장 프론트 흐름
+
+1) 지도 이동 완료 시 GET /api/map/stores와 GET /api/map/kakao-cafes 호출
+2) 두 결과를 source+id 기준으로 핀 표시
+3) 카페 검색 결과가 없으면 meta.manual_location에 수동 위치 핀 표시
+4) 사장님이 위치를 확정하면 PATCH /api/owner/store/location 호출
+5) 핀 클릭 시 source에 맞는 /api/map/pins/{source}/{id} 호출
+6) 응답 data로 카페 상세 카드 또는 상세 화면 표시
+
+카카오 검색 기능을 실제로 사용하려면 백엔드 환경변수 KAKAO_REST_API_KEY에
+유효한 카카오 REST API 키가 설정되어 있어야 합니다.

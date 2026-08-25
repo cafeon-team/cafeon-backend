@@ -1,0 +1,278 @@
+CafeOn 사장님 회원가입·프로필·메뉴 API 변경사항
+작성일: 2026-08-20
+
+======================================================================
+1. 공통 설정
+======================================================================
+
+로컬 API 주소:
+NEXT_PUBLIC_API_BASE_URL=http://192.168.0.75:8000
+
+백엔드가 8001 포트로 실행된 경우에만 끝 포트를 8001로 맞춰야 합니다.
+환경변수를 변경한 뒤에는 Next.js 개발 서버를 반드시 재시작해야 합니다.
+
+사장님 전용 API 요청에는 다음 헤더가 필요합니다.
+
+Authorization: Bearer {사장님 로그인 토큰}
+Accept: application/json
+
+손님 토큰으로 사장님 API를 호출하면 403 응답이 발생합니다.
+
+
+======================================================================
+2. 사장님 회원가입 권한 구조
+======================================================================
+
+POST /api/auth/owner/signup
+
+사장님 회원가입 시 백엔드가 한 번의 트랜잭션으로 다음 항목을 모두 생성합니다.
+
+1) users.role = ADMIN
+   - CafeOn에서 사장님 계정이라는 뜻입니다.
+
+2) stores 레코드 생성
+   - 회원가입 요청의 store_name 등으로 매장이 생성됩니다.
+
+3) store_members.role = OWNER
+   - 해당 사장님과 생성된 매장을 소유자로 연결합니다.
+
+ADMIN과 OWNER는 하나의 role 필드에 두 값이 들어가는 구조가 아닙니다.
+users 테이블에는 ADMIN, store_members 테이블에는 OWNER가 각각 저장됩니다.
+두 정보가 모두 있어야 프로필, 메뉴 등 사장님 매장 API가 정상 작동합니다.
+
+필수 요청 예시:
+
+{
+  "name": "홍길동",
+  "email": "owner@example.com",
+  "password": "password1234",
+  "password_confirmation": "password1234",
+  "phone": "010-1234-5678",
+  "store_name": "카페온",
+  "store_address": "대구광역시 중구",
+  "store_detail_address": "1층",
+  "store_phone": "053-123-4567",
+  "terms_accepted": true
+}
+
+성공 상태: 201
+응답 주요 필드:
+
+- token
+- token_type
+- user (role은 ADMIN)
+- store_id
+- store
+- membership (role은 OWNER)
+
+
+======================================================================
+3. 손님·사장님 로그인 분리
+======================================================================
+
+손님 로그인:
+POST /api/auth/customer/login
+
+사장님 로그인:
+POST /api/auth/owner/login
+
+요청:
+
+{
+  "email": "admin@cafeon.test",
+  "password": "password1234"
+}
+
+사장님 로그인 성공 응답에는 token, user뿐 아니라 대표 매장의 store_id,
+store 정보도 포함됩니다.
+
+권한이 다른 로그인 화면을 사용하면 403과 다음 메시지가 반환됩니다.
+
+- 손님 계정으로 사장님 로그인: 손님 계정은 사장님 화면에서 로그인할 수 없습니다.
+- 사장님 계정으로 손님 로그인: 사장님 계정은 손님 화면에서 로그인할 수 없습니다.
+
+프론트에서는 손님 토큰과 사장님 토큰 저장소를 구분해야 합니다.
+
+
+======================================================================
+4. 사장님 프로필 조회·저장
+======================================================================
+
+대표 매장 조회:
+GET /api/owner/store
+
+대표 매장 수정:
+PATCH /api/owner/store
+
+프론트에서 store_id를 URL에 직접 넣지 않아도 로그인 계정의 OWNER 매장을
+백엔드가 자동으로 선택합니다.
+
+화면 진입 시 GET /api/owner/store 응답의 store를 입력 상태에 넣어야 합니다.
+빈 초기 상태가 서버에서 받은 값을 다시 덮어쓰지 않도록 주의해 주세요.
+
+수정 요청 예시:
+
+{
+  "name": "카페온 동성로점",
+  "description": "매장 설명",
+  "address": "대구 중구 중앙대로 380",
+  "detail_address": "1층",
+  "phone": "053-253-0656",
+  "business_hours": null,
+  "thumbnail_url": "http://192.168.0.75:8000/storage/blog/example.png",
+  "tags": ["커피", "음료"]
+}
+
+변경점:
+
+- business_hours에 문자열 또는 null을 보내는 모바일 화면 형식을 지원합니다.
+- 정규 요일 배열 형식도 계속 지원합니다.
+- tags는 ["커피", "음료"] 문자열 배열과 name/slug 객체 배열을 지원합니다.
+- store_name, store_description, store_address, store_phone 별칭도 지원합니다.
+- 저장 성공 후 응답의 store를 프론트 상태에 다시 반영해야 합니다.
+
+로그아웃 시 서버의 매장 정보를 빈 값으로 PATCH하면 안 됩니다.
+로그아웃은 토큰과 프론트 임시 상태만 제거하고, 재로그인 후
+GET /api/owner/store를 다시 호출해야 합니다.
+
+
+======================================================================
+5. 메뉴 조회·저장
+======================================================================
+
+메뉴 목록:
+GET /api/owner/menus
+
+메뉴 등록:
+POST /api/owner/menus
+
+대표 OWNER 매장이 자동 선택되므로 store_id는 필요하지 않습니다.
+
+메뉴 등록 예시:
+
+{
+  "name": "딸기라떼",
+  "price": 4500,
+  "category": "음료",
+  "image_url": "http://192.168.0.75:8000/storage/blog/example.png",
+  "is_available": true
+}
+
+변경점:
+
+- category_id 대신 category 이름을 보내도 됩니다.
+- 해당 카테고리가 없으면 백엔드가 현재 매장에 자동 생성합니다.
+- image 대신 image_url 사용을 권장합니다. image 별칭도 호환됩니다.
+- soldOut을 보내는 기존 화면도 지원하지만 is_available 사용을 권장합니다.
+- 성공 상태는 201이며 응답의 menu.id를 화면 상태에 사용해야 합니다.
+- 화면 진입/재로그인 시 GET /api/owner/menus로 DB 목록을 다시 조회해야 합니다.
+
+GET /api/owner/menus 응답의 카테고리 필드:
+
+- category: "음료"              (화면에서 바로 사용하는 문자열)
+- category_name: "음료"         (명시적인 카테고리 이름)
+- category_detail: { ... }       (카테고리 id 등이 필요한 경우 사용하는 객체)
+
+2026-08-20 실제 프론트 오류로 m.category 객체에 toLowerCase()를 호출하면서
+저장된 메뉴 목록 렌더링이 중단되는 문제가 확인되어 위 호환 형식으로 변경했습니다.
+프론트에서는 다음처럼 문자열만 normalizeMenuCategory에 전달해야 합니다.
+
+const categoryName =
+  typeof m.category === "string"
+    ? m.category
+    : m.category?.name ?? m.category_name ?? m.name;
+
+category: normalizeMenuCategory(categoryName)
+
+
+======================================================================
+6. 메뉴 이미지 업로드 순서
+======================================================================
+
+POST /api/uploads/images
+Content-Type: multipart/form-data
+폼 필드명: image
+
+허용 형식: jpg, jpeg, png, webp, gif
+최대 크기: 5MB
+
+처리 순서:
+
+1) 선택한 File을 image 필드로 /api/uploads/images에 업로드합니다.
+2) 응답의 url 값을 받습니다.
+3) 그 url을 POST /api/owner/menus의 image_url로 전송합니다.
+
+File 객체, blob: 미리보기 URL, base64 문자열을 메뉴 JSON의 image_url에
+직접 보내면 안 됩니다.
+
+현재 프론트가 FileReader의 data:image/...;base64 미리보기 값을 직접 보내는
+문제가 확인되어 백엔드에서도 5MB 이하 jpg/png/webp/gif data URL을 파일로
+변환해 저장하도록 호환 처리를 추가했습니다. 다만 전송량과 성능을 위해 프론트는
+위의 /api/uploads/images 선업로드 방식으로 수정하는 것을 권장합니다.
+
+
+======================================================================
+7. 프론트에서 반드시 변경할 오류 처리
+======================================================================
+
+현재 프론트 apiOwnerCreateMenu는 서버 오류를 catch한 뒤 null만 반환해
+실제 실패 원인(401/403/404/422)을 숨기는 문제가 확인되었습니다.
+
+다음 정보를 호출 화면까지 전달하도록 수정해야 합니다.
+
+- HTTP status
+- response.message
+- response.errors
+
+권장 처리 예시:
+
+if (!response.ok) {
+  const body = await response.json().catch(() => ({}));
+  throw new Error(body.message ?? `메뉴 저장 실패 (${response.status})`);
+}
+
+메뉴는 서버가 201을 반환한 후에만 화면 목록에 확정해서 추가하거나,
+임시 항목을 추가했다면 실패 시 반드시 제거해야 합니다.
+
+
+======================================================================
+8. 오류 상태별 의미
+======================================================================
+
+401: 토큰 없음 또는 만료
+403: 손님/사장님 권한 불일치 또는 비활성 계정
+404 + 연결된 매장 관련 메시지: store_members OWNER 연결 누락
+422: 입력값 검증 실패. response.errors 확인
+브라우저 Network Error: API 주소, 포트, 백엔드 실행 여부, 방화벽, CORS 확인
+
+
+======================================================================
+9. Swagger 확인 주소
+======================================================================
+
+백엔드를 8000번으로 실행한 경우:
+http://192.168.0.75:8000/api/documentation
+
+JSON 파일:
+storage/api-docs/api-docs.json
+
+프론트 개발자가 우선 확인할 Swagger 항목:
+
+- POST /api/auth/owner/signup
+- POST /api/auth/owner/login
+- GET /api/owner/store
+- PATCH /api/owner/store
+- GET /api/owner/menus
+- POST /api/owner/menus
+- POST /api/uploads/images
+
+
+======================================================================
+10. 백엔드 검증 결과
+======================================================================
+
+- admin@cafeon.test: users.role=ADMIN 확인
+- 해당 계정의 매장 연결: store_members.role=OWNER 확인
+- 프로필 저장 후 로그아웃/재로그인 조회 성공
+- 메뉴 저장 후 로그아웃/재로그인 조회 성공
+- 백엔드 전체 테스트: 153개 성공, 748 assertions

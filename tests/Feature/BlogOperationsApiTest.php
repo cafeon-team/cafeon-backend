@@ -54,9 +54,9 @@ class BlogOperationsApiTest extends TestCase
         Storage::disk('public')->put('other/keep.png', 'image');
 
         app(ImageStorageService::class)->deleteLocalUrls([
-            'http://127.0.0.1:8001/storage/blog/remove.png',
+            'http://127.0.0.1:8000/storage/blog/remove.png',
             'http://example.com/image.png',
-            'http://127.0.0.1:8001/storage/other/keep.png',
+            'http://127.0.0.1:8000/storage/other/keep.png',
         ]);
 
         Storage::disk('public')->assertMissing('blog/remove.png');

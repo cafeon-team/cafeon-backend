@@ -81,6 +81,7 @@ class OrderService
                 'user_id' => $user->id,
                 'store_id' => $data['store_id'],
                 'reservation_id' => $reservation?->id,
+                'total_amount' => $menuAmount,
                 'menu_amount' => $menuAmount,
                 'deposit_amount' => 0,
                 'coupon_discount_amount' => $discount,

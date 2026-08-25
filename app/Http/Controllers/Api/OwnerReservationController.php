@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CustomerVisit;
 use App\Models\Reservation;
 use App\Models\Store;
+use App\Services\OwnerStoreAccessService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,13 @@ class OwnerReservationController extends Controller
         'AWAITING_PAYMENT' => ['CONFIRMED', 'CANCELLED', 'PAYMENT_FAILED', 'EXPIRED'],
         'CONFIRMED' => ['COMPLETED', 'CANCELLED', 'NO_SHOW'],
     ];
+
+    public function __construct(private readonly OwnerStoreAccessService $storeAccess) {}
+
+    public function indexMine(Request $request): JsonResponse
+    {
+        return $this->index($request, $this->storeAccess->primary($request->user()));
+    }
 
     public function index(Request $request, Store $store): JsonResponse
     {
@@ -46,6 +54,16 @@ class OwnerReservationController extends Controller
     {
         $reservation->loadMissing('store', 'slot');
         $this->authorizeStore($request, $reservation->store);
+        if ($request->has('status')) {
+            $status = strtoupper(trim((string) $request->input('status')));
+            $request->merge(['status' => match ($status) {
+                'ACCEPT', 'ACCEPTED', 'APPROVE', 'APPROVED', '수락', '승인' => 'CONFIRMED',
+                'REJECT', 'DECLINED', '거절' => 'REJECTED',
+                'CANCEL', '취소' => 'CANCELLED',
+                'COMPLETE', '완료' => 'COMPLETED',
+                default => $status,
+            }]);
+        }
 
         $validated = $request->validate([
             'status' => ['required', Rule::in([
@@ -103,14 +121,6 @@ class OwnerReservationController extends Controller
 
     private function authorizeStore(Request $request, Store $store): void
     {
-        $user = $request->user();
-        $isAdmin = strtoupper((string) $user->role) === 'ADMIN';
-        $isManager = $store->members()
-            ->where('user_id', $user->id)
-            ->where('is_active', true)
-            ->whereIn('role', ['OWNER', 'MANAGER'])
-            ->exists();
-
-        abort_unless($isAdmin || $isManager, 403, '이 매장의 예약 관리 권한이 없습니다.');
+        $this->storeAccess->authorize($request->user(), $store);
     }
 }

@@ -17,7 +17,7 @@ class ImageStorageService
         }
     }
 
-    private function publicDiskPath(?string $url): ?string
+    public function publicDiskPath(?string $url): ?string
     {
         if (! $url) {
             return null;

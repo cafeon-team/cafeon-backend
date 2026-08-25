@@ -13,7 +13,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'email_verified_at', 'password', 'phone', 'profile_image_url', 'role', 'last_login_at', 'is_active'])]
+#[Fillable(['name', 'email', 'email_verified_at', 'password', 'phone', 'profile_image_url', 'profile_thumbnail_url', 'birth_date', 'role', 'last_login_at', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -22,7 +22,7 @@ class User extends Authenticatable
 
     protected function casts(): array
     {
-        return ['email_verified_at' => 'datetime', 'last_login_at' => 'datetime', 'is_active' => 'boolean', 'password' => 'hashed'];
+        return ['email_verified_at' => 'datetime', 'birth_date' => 'date:Y-m-d', 'last_login_at' => 'datetime', 'is_active' => 'boolean', 'password' => 'hashed'];
     }
 
     public function socialAccounts(): HasMany

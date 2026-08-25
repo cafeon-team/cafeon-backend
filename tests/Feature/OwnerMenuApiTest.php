@@ -8,6 +8,8 @@ use App\Models\Store;
 use App\Models\StoreMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -70,6 +72,25 @@ class OwnerMenuApiTest extends TestCase
         $this->assertDatabaseMissing('menus', ['name' => '잘못된 메뉴']);
     }
 
+    public function test_mobile_owner_can_create_menu_with_data_url_image(): void
+    {
+        Storage::fake('public');
+        [$owner] = $this->fixture();
+        Sanctum::actingAs($owner);
+
+        $png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+
+        $imageUrl = $this->postJson('/api/owner/menus', [
+            'name' => '이미지 메뉴',
+            'price' => 4500,
+            'category' => '커피',
+            'image_url' => 'data:image/png;base64,'.$png,
+        ])->assertCreated()->json('menu.image_url');
+
+        $path = ltrim((string) parse_url($imageUrl, PHP_URL_PATH), '/');
+        Storage::disk('public')->assertExists(Str::after($path, 'storage/'));
+    }
+
     public function test_unrelated_user_cannot_manage_menu(): void
     {
         [, $store] = $this->fixture();
@@ -81,7 +102,7 @@ class OwnerMenuApiTest extends TestCase
         $this->deleteJson("/api/owner/menus/{$menu->id}")->assertForbidden();
     }
 
-    public function test_manager_and_admin_can_manage_menu(): void
+    public function test_manager_can_manage_menu_but_unrelated_admin_cannot(): void
     {
         [, $store] = $this->fixture();
         $manager = User::factory()->create();
@@ -91,7 +112,7 @@ class OwnerMenuApiTest extends TestCase
             ->assertCreated()->json('menu.id');
 
         Sanctum::actingAs(User::factory()->create(['role' => 'ADMIN']));
-        $this->putJson("/api/owner/menus/{$menuId}", ['price' => 4500])->assertOk();
+        $this->putJson("/api/owner/menus/{$menuId}", ['price' => 4500])->assertForbidden();
     }
 
     private function fixture(): array

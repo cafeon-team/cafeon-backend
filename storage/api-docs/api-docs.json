@@ -2,13 +2,13 @@
     "openapi": "3.0.0",
     "info": {
         "title": "CafeOn API",
-        "description": "CafeOn backend API documentation",
-        "version": "1.0.0"
+        "description": "CafeOn 손님·사장님·SUPER_ADMIN 백엔드 API 문서. 사장님 운영 API는 Bearer 토큰으로 로그인 계정의 OWNER 매장을 자동 선택합니다.",
+        "version": "1.3.0"
     },
     "servers": [
         {
-            "url": "http://127.0.0.1:8001",
-            "description": "Local development server"
+            "url": "http://192.168.0.75:8000",
+            "description": "현재 Laravel APP_URL 서버"
         }
     ],
     "paths": {
@@ -300,38 +300,84 @@
         "/api/auth/owner/login": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "사장님 인증"
                 ],
-                "summary": "사장님 로그인",
-                "description": "ADMIN 권한 계정만 로그인할 수 있습니다.",
+                "summary": "사장님 로그인 및 매장정보 복원",
+                "description": "ADMIN 계정을 인증하고 token, store_id, store, membership, stores, memberships를 반환합니다.",
                 "operationId": "post_api_auth_owner_login",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "required": [
-                                    "email",
-                                    "password"
-                                ],
+                                "type": "object",
                                 "properties": {
                                     "email": {
                                         "type": "string",
-                                        "format": "email"
+                                        "format": "email",
+                                        "example": "owner@cafeon.test"
                                     },
                                     "password": {
                                         "type": "string",
-                                        "format": "password"
+                                        "format": "password",
+                                        "example": "password1234"
                                     }
                                 },
-                                "type": "object"
+                                "required": [
+                                    "email",
+                                    "password"
+                                ]
                             }
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "사장님 로그인 성공"
+                        "description": "로그인 성공 및 사장님 매장 컨텍스트 반환",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "token": {
+                                            "type": "string"
+                                        },
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        },
+                                        "user": {
+                                            "type": "object"
+                                        },
+                                        "store_id": {
+                                            "type": "integer",
+                                            "nullable": true,
+                                            "example": 1
+                                        },
+                                        "store": {
+                                            "type": "object",
+                                            "nullable": true
+                                        },
+                                        "membership": {
+                                            "type": "object",
+                                            "nullable": true
+                                        },
+                                        "stores": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "memberships": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "403": {
                         "description": "손님 계정 또는 비활성 계정"
@@ -382,9 +428,9 @@
         "/api/auth/social/exchange": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "사장님 인증"
                 ],
-                "summary": "exchange (auth/social/exchange)",
+                "summary": "소셜 로그인 코드 교환",
                 "operationId": "post_api_auth_social_exchange_06530e",
                 "responses": {
                     "200": {
@@ -392,6 +438,35 @@
                     },
                     "422": {
                         "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "description": "owner 소셜 로그인인 경우 일반 사장님 로그인과 동일하게 store_id와 매장 컨텍스트를 반환합니다.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "minLength": 64,
+                                        "maxLength": 64
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "customer",
+                                            "owner"
+                                        ],
+                                        "example": "owner"
+                                    }
+                                },
+                                "required": [
+                                    "code"
+                                ]
+                            }
+                        }
                     }
                 }
             }
@@ -574,6 +649,118 @@
                 "security": [
                     {
                         "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/map/kakao-cafes": {
+            "get": {
+                "tags": [
+                    "Map"
+                ],
+                "summary": "MapStoreController kakaoCafes",
+                "operationId": "get_api_map_kakao_cafes",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "sw_lat",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "number",
+                            "format": "double"
+                        }
+                    },
+                    {
+                        "name": "sw_lng",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "number",
+                            "format": "double"
+                        }
+                    },
+                    {
+                        "name": "ne_lat",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "number",
+                            "format": "double"
+                        }
+                    },
+                    {
+                        "name": "ne_lng",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "number",
+                            "format": "double"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 45,
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 15,
+                            "default": 15
+                        }
+                    }
+                ]
+            }
+        },
+        "/api/map/pins/{source}/{id}": {
+            "get": {
+                "tags": [
+                    "Map"
+                ],
+                "summary": "MapStoreController showPin",
+                "operationId": "get_api_map_pins_source_id_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "source",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ]
             }
@@ -853,6 +1040,88 @@
                 ]
             }
         },
+        "/api/owner/dashboard": {
+            "get": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "사장님 통합 대시보드 조회",
+                "operationId": "get_api_owner_dashboard",
+                "responses": {
+                    "200": {
+                        "description": "사장님 운영화면 통합 데이터",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "store": {
+                                            "type": "object"
+                                        },
+                                        "summary": {
+                                            "type": "object",
+                                            "properties": {
+                                                "is_open": {
+                                                    "type": "boolean"
+                                                },
+                                                "today_sales": {
+                                                    "type": "integer"
+                                                },
+                                                "seat_count": {
+                                                    "type": "integer"
+                                                },
+                                                "seat_capacity": {
+                                                    "type": "integer"
+                                                },
+                                                "reservation_count": {
+                                                    "type": "integer"
+                                                },
+                                                "pending_reservation_count": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        },
+                                        "menuItems": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "reservations": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "pendingReservations": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "영업 상태, 매출, 좌석, 예약, 메뉴를 로그인 계정의 대표 매장 기준으로 조회합니다."
+            }
+        },
         "/api/owner/inventory/{inventory}": {
             "put": {
                 "tags": [
@@ -999,6 +1268,62 @@
                 ]
             }
         },
+        "/api/owner/menu-categories": {
+            "post": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "내 매장 메뉴 카테고리 등록",
+                "operationId": "post_api_owner_menu_categories",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "커피, 음료, 디저트 등의 메뉴 카테고리를 등록합니다.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "커피"
+                                    },
+                                    "sort_order": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "default": true
+                                    }
+                                },
+                                "required": [
+                                    "name"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/owner/menu-categories/{category}": {
             "put": {
                 "tags": [
@@ -1068,6 +1393,149 @@
                         "sanctum": []
                     }
                 ]
+            }
+        },
+        "/api/owner/menus": {
+            "get": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "내 매장 메뉴·카테고리 조회",
+                "operationId": "get_api_owner_menus",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "재로그인 후 저장된 메뉴와 카테고리를 복원합니다.",
+                "parameters": [
+                    {
+                        "name": "category_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "is_available",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "keyword",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "내 매장 메뉴 등록",
+                "operationId": "post_api_owner_menus",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "대표 OWNER 매장에 메뉴를 등록합니다.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "category_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "category": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "example": "커피",
+                                        "description": "카테고리명으로 자동 연결 가능"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "아메리카노"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "example": 4500
+                                    },
+                                    "image_url": {
+                                        "type": "string",
+                                        "format": "uri",
+                                        "nullable": true
+                                    },
+                                    "is_available": {
+                                        "type": "boolean",
+                                        "default": true
+                                    },
+                                    "soldOut": {
+                                        "type": "boolean",
+                                        "description": "기존 프론트 호환 필드"
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "price"
+                                ]
+                            }
+                        }
+                    }
+                }
             }
         },
         "/api/owner/menus/{menu}": {
@@ -1217,6 +1685,286 @@
                 ]
             }
         },
+        "/api/owner/profile": {
+            "get": {
+                "tags": [
+                    "Owner"
+                ],
+                "summary": "ProfileController owner",
+                "operationId": "get_api_owner_profile",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Owner"
+                ],
+                "summary": "ProfileController updateOwner",
+                "operationId": "put_api_owner_profile",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "profile_image_url": {
+                                        "type": "string",
+                                        "format": "uri",
+                                        "nullable": true
+                                    },
+                                    "birth_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Owner"
+                ],
+                "summary": "ProfileController updateOwner",
+                "operationId": "patch_api_owner_profile",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "profile_image_url": {
+                                        "type": "string",
+                                        "format": "uri",
+                                        "nullable": true
+                                    },
+                                    "birth_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/owner/reservations": {
+            "get": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "내 매장 예약 목록 조회",
+                "operationId": "get_api_owner_reservations",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "전체 예약 또는 수락 대기 등 상태별 예약을 조회합니다.",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "PENDING_APPROVAL",
+                                "AWAITING_PAYMENT",
+                                "CONFIRMED",
+                                "REJECTED",
+                                "CANCELLED",
+                                "COMPLETED",
+                                "NO_SHOW",
+                                "PAYMENT_FAILED",
+                                "EXPIRED"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ]
+            }
+        },
+        "/api/owner/reservations/{reservation}/status": {
+            "patch": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "예약 수락·거절·상태 변경",
+                "operationId": "patch_api_owner_reservations_reservation_status",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "reservation",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "본인 매장 예약의 상태를 변경하고 승인자와 처리 시각을 저장합니다.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "CONFIRMED",
+                                            "REJECTED",
+                                            "CANCELLED",
+                                            "COMPLETED",
+                                            "NO_SHOW",
+                                            "PAYMENT_FAILED",
+                                            "EXPIRED",
+                                            "ACCEPTED",
+                                            "수락",
+                                            "거절"
+                                        ]
+                                    },
+                                    "reason": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "maxLength": 500,
+                                        "description": "거절 시 필수"
+                                    }
+                                },
+                                "required": [
+                                    "status"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/owner/review-replies/{reply}": {
             "put": {
                 "tags": [
@@ -1326,6 +2074,402 @@
                 ]
             }
         },
+        "/api/owner/seats": {
+            "get": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "내 매장 좌석 현황 조회",
+                "operationId": "get_api_owner_seats",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "저장된 좌석과 현재 상태를 조회합니다."
+            },
+            "post": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "내 매장 좌석 등록",
+                "operationId": "post_api_owner_seats",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "대표 OWNER 매장에 좌석을 등록합니다.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "seat_code": {
+                                        "type": "string",
+                                        "example": "A1"
+                                    },
+                                    "seat_name": {
+                                        "type": "string",
+                                        "example": "창가 좌석"
+                                    },
+                                    "seat_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "WINDOW",
+                                            "NORMAL",
+                                            "GROUP",
+                                            "OUTDOOR"
+                                        ]
+                                    },
+                                    "capacity": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 100,
+                                        "example": 2
+                                    },
+                                    "floor_number": {
+                                        "type": "integer",
+                                        "default": 1
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "AVAILABLE",
+                                            "UNAVAILABLE",
+                                            "MAINTENANCE",
+                                            "비어있음",
+                                            "사용중",
+                                            "대기",
+                                            "EMPTY",
+                                            "OCCUPIED",
+                                            "WAITING"
+                                        ]
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "default": true
+                                    }
+                                },
+                                "required": [
+                                    "seat_code",
+                                    "seat_name",
+                                    "capacity"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/owner/seats/availability": {
+            "patch": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "좌석 상태 일괄 변경",
+                "operationId": "patch_api_owner_seats_availability",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "여러 좌석의 상태를 한 번에 저장합니다.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "seats": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "maxItems": 100,
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "id",
+                                                "status"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "AVAILABLE",
+                                                        "UNAVAILABLE",
+                                                        "MAINTENANCE",
+                                                        "비어있음",
+                                                        "사용중",
+                                                        "대기",
+                                                        "EMPTY",
+                                                        "OCCUPIED",
+                                                        "WAITING"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "seats"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/owner/seats/reset": {
+            "post": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "좌석 설정 초기화",
+                "operationId": "post_api_owner_seats_reset",
+                "responses": {
+                    "200": {
+                        "description": "좌석 초기화 및 DB 저장 성공",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "좌석 설정이 초기화되었습니다."
+                                        },
+                                        "seats": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "availability": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "좌석을 1번부터 요청 수만큼 재구성해 DB에 저장합니다. 로그아웃 후 재로그인해도 GET 좌석 API로 복원됩니다.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "total_seats": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 100,
+                                        "example": 15
+                                    },
+                                    "seat_count": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 100,
+                                        "description": "total_seats 호환 별칭"
+                                    },
+                                    "count": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 100,
+                                        "description": "total_seats 호환 별칭"
+                                    }
+                                },
+                                "anyOf": [
+                                    {
+                                        "required": [
+                                            "total_seats"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "seat_count"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "count"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/owner/seats/{seat}": {
+            "patch": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "좌석 상태 변경",
+                "operationId": "patch_api_owner_seats_seat_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "seat",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "비어있음, 사용중, 대기/점검 상태를 저장합니다.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "AVAILABLE",
+                                            "UNAVAILABLE",
+                                            "MAINTENANCE",
+                                            "비어있음",
+                                            "사용중",
+                                            "대기",
+                                            "EMPTY",
+                                            "OCCUPIED",
+                                            "WAITING"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "status"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "좌석 삭제",
+                "operationId": "delete_api_owner_seats_seat_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "seat",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "본인 매장의 좌석을 삭제합니다."
+            }
+        },
         "/api/owner/staff/{member}": {
             "delete": {
                 "tags": [
@@ -1419,6 +2563,562 @@
                 ]
             }
         },
+        "/api/owner/store": {
+            "get": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "내 대표 매장 조회",
+                "operationId": "get_api_owner_store",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "매장 ID 없이 로그인한 사장님의 대표 OWNER 매장을 조회합니다."
+            },
+            "patch": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "내 대표 매장 프로필 저장",
+                "operationId": "patch_api_owner_store",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "detail_address": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "business_hours_text": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "example": "09:00-22:00"
+                                    },
+                                    "business_info_text": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "example": "123-45-67890"
+                                    },
+                                    "thumbnail_url": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "reservation_enabled": {
+                                        "type": "boolean"
+                                    },
+                                    "business_info": {
+                                        "type": "object",
+                                        "nullable": true,
+                                        "properties": {
+                                            "business_registration_number": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "representative_name": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "company_name": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "business_type": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "business_item": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "business_address": {
+                                                "type": "string",
+                                                "nullable": true
+                                            }
+                                        }
+                                    },
+                                    "business_hours": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "day_of_week",
+                                                "is_closed"
+                                            ],
+                                            "properties": {
+                                                "day_of_week": {
+                                                    "type": "integer",
+                                                    "minimum": 0,
+                                                    "maximum": 6
+                                                },
+                                                "opening_time": {
+                                                    "type": "string",
+                                                    "nullable": true,
+                                                    "example": "09:00"
+                                                },
+                                                "closing_time": {
+                                                    "type": "string",
+                                                    "nullable": true,
+                                                    "example": "22:00"
+                                                },
+                                                "is_closed": {
+                                                    "type": "boolean"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "name"
+                                            ],
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "와이파이"
+                                                },
+                                                "slug": {
+                                                    "type": "string",
+                                                    "nullable": true,
+                                                    "example": "wifi"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "description": "매장명, 설명, 주소, 전화번호, 영업시간, 사업자정보와 태그를 저장합니다."
+            }
+        },
+        "/api/owner/store/business-status": {
+            "patch": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "매장 운영 상태 저장",
+                "operationId": "patch_api_owner_store_business_status",
+                "responses": {
+                    "200": {
+                        "description": "요청 성공",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "영업 중으로 변경되었습니다."
+                                        },
+                                        "store": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "운영중/운영종료 상태를 stores.is_open에 저장합니다.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "is_open": {
+                                        "type": "boolean",
+                                        "example": true,
+                                        "description": "true=운영중, false=운영종료"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true,
+                                        "description": "기존 프론트 호환 필드"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "OPEN",
+                                            "CLOSED",
+                                            "운영중",
+                                            "운영종료"
+                                        ],
+                                        "description": "문자열 호환 필드"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/owner/store/location": {
+            "patch": {
+                "tags": [
+                    "Owner"
+                ],
+                "summary": "OwnerStoreController updateMineLocation",
+                "operationId": "patch_api_owner_store_location",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/stores": {
+            "get": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "내 소유 매장 목록 조회",
+                "operationId": "get_api_owner_stores",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "로그인 계정에 활성 OWNER로 연결된 매장 목록과 대표 store_id를 반환합니다."
+            }
+        },
+        "/api/owner/stores/{store}": {
+            "get": {
+                "tags": [
+                    "Owner"
+                ],
+                "summary": "OwnerStoreController show",
+                "operationId": "get_api_owner_stores_store_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Owner"
+                ],
+                "summary": "OwnerStoreController update",
+                "operationId": "patch_api_owner_stores_store_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "detail_address": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "business_hours_text": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "example": "09:00-22:00"
+                                    },
+                                    "business_info_text": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "example": "123-45-67890"
+                                    },
+                                    "thumbnail_url": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "reservation_enabled": {
+                                        "type": "boolean"
+                                    },
+                                    "business_info": {
+                                        "type": "object",
+                                        "nullable": true,
+                                        "properties": {
+                                            "business_registration_number": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "representative_name": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "company_name": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "business_type": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "business_item": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "business_address": {
+                                                "type": "string",
+                                                "nullable": true
+                                            }
+                                        }
+                                    },
+                                    "business_hours": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "day_of_week",
+                                                "is_closed"
+                                            ],
+                                            "properties": {
+                                                "day_of_week": {
+                                                    "type": "integer",
+                                                    "minimum": 0,
+                                                    "maximum": 6
+                                                },
+                                                "opening_time": {
+                                                    "type": "string",
+                                                    "nullable": true,
+                                                    "example": "09:00"
+                                                },
+                                                "closing_time": {
+                                                    "type": "string",
+                                                    "nullable": true,
+                                                    "example": "22:00"
+                                                },
+                                                "is_closed": {
+                                                    "type": "boolean"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "name"
+                                            ],
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "와이파이"
+                                                },
+                                                "slug": {
+                                                    "type": "string",
+                                                    "nullable": true,
+                                                    "example": "wifi"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Owner"
+                ],
+                "summary": "OwnerStoreController destroy",
+                "operationId": "delete_api_owner_stores_store_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/owner/stores/{store}/availability": {
             "patch": {
                 "tags": [
@@ -1450,6 +3150,44 @@
                         "description": "입력값 또는 상태 검증 실패"
                     }
                 },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/stores/{store}/business-status": {
+            "patch": {
+                "tags": [
+                    "Owner"
+                ],
+                "summary": "OwnerStoreController updateBusinessStatus",
+                "operationId": "patch_api_owner_stores_store_business_status",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "security": [
                     {
                         "sanctum": []
@@ -1839,6 +3577,188 @@
                 ]
             }
         },
+        "/api/owner/stores/{store}/seats": {
+            "get": {
+                "tags": [
+                    "Owner"
+                ],
+                "summary": "OwnerSeatController index",
+                "operationId": "get_api_owner_stores_store_seats",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Owner"
+                ],
+                "summary": "OwnerSeatController store",
+                "operationId": "post_api_owner_stores_store_seats",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/owner/stores/{store}/seats/reset": {
+            "post": {
+                "tags": [
+                    "사장님 운영"
+                ],
+                "summary": "좌석 설정 초기화",
+                "operationId": "post_api_owner_stores_store_seats_reset",
+                "responses": {
+                    "200": {
+                        "description": "좌석 초기화 및 DB 저장 성공",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "좌석 설정이 초기화되었습니다."
+                                        },
+                                        "seats": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "availability": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "description": "좌석을 1번부터 요청 수만큼 재구성해 DB에 저장합니다. 로그아웃 후 재로그인해도 GET 좌석 API로 복원됩니다.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "total_seats": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 100,
+                                        "example": 15
+                                    },
+                                    "seat_count": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 100,
+                                        "description": "total_seats 호환 별칭"
+                                    },
+                                    "count": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 100,
+                                        "description": "total_seats 호환 별칭"
+                                    }
+                                },
+                                "anyOf": [
+                                    {
+                                        "required": [
+                                            "total_seats"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "seat_count"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "count"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/owner/stores/{store}/seats/{seat}": {
             "patch": {
                 "tags": [
@@ -1878,6 +3798,50 @@
                         "description": "입력값 또는 상태 검증 실패"
                     }
                 },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Owner"
+                ],
+                "summary": "OwnerSeatController destroy",
+                "operationId": "delete_api_owner_stores_store_seats_seat_",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "store",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "seat",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "security": [
                     {
                         "sanctum": []
@@ -2740,9 +4704,9 @@
         "/api/reviews/{review}": {
             "put": {
                 "tags": [
-                    "Reviews"
+                    "리뷰"
                 ],
-                "summary": "수정 (reviews/{review})",
+                "summary": "내 리뷰·사진 수정",
                 "operationId": "put_api_reviews_review_3bda18",
                 "parameters": [
                     {
@@ -2756,7 +4720,66 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "성공"
+                        "description": "요청 성공",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "review": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "store_id": {
+                                                    "type": "integer"
+                                                },
+                                                "user_id": {
+                                                    "type": "integer"
+                                                },
+                                                "rating": {
+                                                    "type": "integer",
+                                                    "minimum": 1,
+                                                    "maximum": 5
+                                                },
+                                                "content": {
+                                                    "type": "string"
+                                                },
+                                                "images": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "review_id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "image_url": {
+                                                                "type": "string",
+                                                                "format": "uri"
+                                                            },
+                                                            "alt_text": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            },
+                                                            "sort_order": {
+                                                                "type": "integer"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "description": "인증 필요"
@@ -2772,13 +4795,44 @@
                     {
                         "sanctum": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "rating": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 5
+                                    },
+                                    "content": {
+                                        "type": "string",
+                                        "maxLength": 3000
+                                    },
+                                    "image_urls": {
+                                        "type": "array",
+                                        "maxItems": 5,
+                                        "uniqueItems": true,
+                                        "description": "먼저 /api/uploads/images에 본인 토큰으로 업로드한 CafeOn 이미지 URL만 허용",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uri"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             },
             "delete": {
                 "tags": [
-                    "Reviews"
+                    "리뷰"
                 ],
-                "summary": "삭제 (reviews/{review})",
+                "summary": "내 리뷰 및 실제 이미지 파일 삭제",
                 "operationId": "delete_api_reviews_review_56983b",
                 "parameters": [
                     {
@@ -3207,9 +5261,9 @@
         "/api/stores/{store}/reviews": {
             "get": {
                 "tags": [
-                    "Reviews"
+                    "리뷰"
                 ],
-                "summary": "목록 조회 (stores/{store}/reviews)",
+                "summary": "카페 리뷰·사진 목록 조회",
                 "operationId": "get_api_stores_store_reviews_e08861",
                 "parameters": [
                     {
@@ -3223,15 +5277,86 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "성공"
+                        "description": "요청 성공",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "store_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "user_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "rating": {
+                                                        "type": "integer",
+                                                        "minimum": 1,
+                                                        "maximum": 5
+                                                    },
+                                                    "content": {
+                                                        "type": "string"
+                                                    },
+                                                    "images": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "review_id": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "image_url": {
+                                                                    "type": "string",
+                                                                    "format": "uri"
+                                                                },
+                                                                "alt_text": {
+                                                                    "type": "string",
+                                                                    "nullable": true
+                                                                },
+                                                                "sort_order": {
+                                                                    "type": "integer"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "current_page": {
+                                            "type": "integer"
+                                        },
+                                        "last_page": {
+                                            "type": "integer"
+                                        },
+                                        "per_page": {
+                                            "type": "integer"
+                                        },
+                                        "total": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
             "post": {
                 "tags": [
-                    "Reviews"
+                    "리뷰"
                 ],
-                "summary": "등록 (stores/{store}/reviews)",
+                "summary": "리뷰 및 리뷰 사진 등록",
                 "operationId": "post_api_stores_store_reviews_ade0f8",
                 "parameters": [
                     {
@@ -3255,13 +5380,122 @@
                     },
                     "422": {
                         "description": "입력값 또는 상태 검증 실패"
+                    },
+                    "201": {
+                        "description": "리뷰 및 이미지 저장 성공",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "review": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "store_id": {
+                                                    "type": "integer"
+                                                },
+                                                "user_id": {
+                                                    "type": "integer"
+                                                },
+                                                "rating": {
+                                                    "type": "integer",
+                                                    "minimum": 1,
+                                                    "maximum": 5
+                                                },
+                                                "content": {
+                                                    "type": "string"
+                                                },
+                                                "images": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "review_id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "image_url": {
+                                                                "type": "string",
+                                                                "format": "uri"
+                                                            },
+                                                            "alt_text": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            },
+                                                            "sort_order": {
+                                                                "type": "integer"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
                     {
                         "sanctum": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "customer_visit_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "order_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "reservation_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "rating": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 5
+                                    },
+                                    "content": {
+                                        "type": "string",
+                                        "maxLength": 3000
+                                    },
+                                    "image_urls": {
+                                        "type": "array",
+                                        "maxItems": 5,
+                                        "uniqueItems": true,
+                                        "description": "먼저 /api/uploads/images에 본인 토큰으로 업로드한 CafeOn 이미지 URL만 허용",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uri"
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "rating",
+                                    "content"
+                                ]
+                            }
+                        }
+                    }
+                }
             }
         },
         "/api/stores/{store}/tags": {
@@ -3436,9 +5670,9 @@
         "/api/uploads/images": {
             "post": {
                 "tags": [
-                    "General"
+                    "이미지"
                 ],
-                "summary": "등록 (uploads/images)",
+                "summary": "인증 사용자 이미지 업로드",
                 "operationId": "post_api_uploads_images_d0855d",
                 "responses": {
                     "200": {
@@ -3452,13 +5686,54 @@
                     },
                     "422": {
                         "description": "입력값 또는 상태 검증 실패"
+                    },
+                    "201": {
+                        "description": "업로드 및 소유권 기록 성공",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "path": {
+                                            "type": "string",
+                                            "example": "blog/example.jpg"
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "format": "uri"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
                     {
                         "sanctum": []
                     }
-                ]
+                ],
+                "description": "업로드 소유자를 기록합니다. 반환 URL은 같은 사용자의 리뷰 image_urls에 사용할 수 있습니다.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "image"
+                                ],
+                                "properties": {
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "description": "jpg/jpeg/png/webp/gif, 최대 5MB"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/api/users/me": {
@@ -3503,6 +5778,65 @@
                     },
                     "422": {
                         "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "profile_image_url": {
+                                        "type": "string",
+                                        "format": "uri",
+                                        "nullable": true
+                                    },
+                                    "birth_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "ProfileController update",
+                "operationId": "patch_api_users_me",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
                     }
                 },
                 "security": [
@@ -3866,6 +6200,34 @@
                     },
                     "422": {
                         "description": "입력값 또는 상태 검증 실패"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/profile-image": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "ProfileController update",
+                "operationId": "post_api_users_me_profile_image",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
                     }
                 },
                 "security": [

@@ -25,6 +25,7 @@ CafeON 서비스의 서버(백엔드) 프로젝트입니다. 카페 정보, 메�
 - 쿠폰, 멤버십 및 추천인 혜택
 - 블로그 게시글, 댓글, 좋아요 및 분류 관리
 - 점주용 예약·대시보드 기능
+- SUPER_ADMIN 전용 운영 콘솔(사용자·매장·주문·예약·리뷰·문의·시스템 상태 관리)
 - 이미지 업로드 및 고객 문의 관리
 
 ## 설치 전에 준비할 프로그램
@@ -89,7 +90,7 @@ cp .env.example .env
 APP_NAME=CafeON
 APP_ENV=local
 APP_DEBUG=true
-APP_URL=http://127.0.0.1:8001
+APP_URL=http://127.0.0.1:8000
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -126,18 +127,35 @@ npm run build
 ### 가장 간단한 실행 방법
 
 ```bash
-php artisan serve --port=8001
+php artisan serve --port=8000
 ```
 
 브라우저에서 아래 주소로 접속합니다.
 
-- 기본 화면: <http://127.0.0.1:8001>
-- Swagger API 문서: <http://127.0.0.1:8001/api/documentation>
-- MVC 기능 확인 화면: <http://127.0.0.1:8001/test/mvc>
-- 블로그 API 확인 화면: <http://127.0.0.1:8001/test/mvc/blog-api>
-- 소셜 로그인 확인 화면: <http://127.0.0.1:8001/test/social-login>
+- 기본 화면: <http://127.0.0.1:8000>
+- Swagger API 문서: <http://127.0.0.1:8000/swagger>
+- MVC 기능 확인 화면: <http://127.0.0.1:8000/test/mvc>
+- 블로그 API 확인 화면: <http://127.0.0.1:8000/test/mvc/blog-api>
+- 소셜 로그인 확인 화면: <http://127.0.0.1:8000/test/social-login>
+- SUPER_ADMIN 운영 콘솔: <http://127.0.0.1:8000/admin/login>
 
 `/test`로 시작하는 확인용 화면은 `.env`의 `APP_ENV`가 `local` 또는 `testing`일 때만 열립니다.
+
+### SUPER_ADMIN 계정 만들기
+
+운영 콘솔은 일반 `ADMIN` 또는 점주 계정과 분리되어 있으며, 정확히 `SUPER_ADMIN` 역할을 가진 활성 계정만 접근할 수 있습니다.
+
+```bash
+php artisan admin:create admin@example.com --name="CafeOn 시스템 관리자"
+```
+
+명령 실행 시 안전한 임시 비밀번호가 출력됩니다. 직접 비밀번호를 지정하거나 기존 관리자 비밀번호를 교체하려면 `--password` 옵션을 사용합니다.
+
+```bash
+php artisan admin:create admin@example.com --name="CafeOn 시스템 관리자" --password="새로운-안전한-비밀번호"
+```
+
+계정 생성과 권한 변경은 서버 콘솔에서만 수행하며, 운영 콘솔 내에서는 다른 `SUPER_ADMIN` 계정을 정지할 수 없습니다. 관리자 로그인과 데이터 변경은 `admin_audit_logs`에 기록됩니다.
 
 ### 서버, 큐, 로그, Vite를 한꺼번에 실행하기
 
@@ -145,7 +163,7 @@ php artisan serve --port=8001
 composer run dev
 ```
 
-이 명령은 Laravel 서버, 작업 큐, 실시간 로그, Vite 개발 서버를 동시에 실행합니다. 이 프로젝트의 `composer.json`에는 서버 포트가 따로 지정되어 있지 않으므로 보통 `http://127.0.0.1:8000`에서 시작합니다. `.env.example`에 적힌 콜백 주소는 8001 포트를 사용하므로, 특히 소셜 로그인을 확인할 때는 위의 `php artisan serve --port=8001` 방식으로 실행하세요.
+이 명령은 Laravel 서버, 작업 큐, 실시간 로그, Vite 개발 서버를 동시에 실행합니다. 이 프로젝트의 로컬 서버와 소셜 로그인 콜백 주소는 `http://127.0.0.1:8000`을 사용합니다.
 
 서버를 종료하려면 실행 중인 터미널에서 `Ctrl + C`를 누릅니다.
 
@@ -173,7 +191,7 @@ Accept: application/json
 php artisan swagger:generate-routes
 ```
 
-문서를 생성한 뒤 <http://127.0.0.1:8001/api/documentation>에 접속합니다.
+문서를 생성한 뒤 <http://127.0.0.1:8000/swagger>에 접속합니다.
 
 ## 테스트 실행하기
 
@@ -226,11 +244,11 @@ Google 또는 Kakao 로그인을 사용하려면 각 개발자 콘솔에서 발�
 ```env
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-GOOGLE_REDIRECT_URI=http://127.0.0.1:8001/auth/social/google/callback
+GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/auth/social/google/callback
 
 KAKAO_CLIENT_ID=
 KAKAO_CLIENT_SECRET=
-KAKAO_REDIRECT_URI=http://127.0.0.1:8001/auth/social/kakao/callback
+KAKAO_REDIRECT_URI=http://127.0.0.1:8000/auth/social/kakao/callback
 ```
 
 소셜 로그인을 사용하지 않는다면 로컬 실행 단계에서는 비워 두어도 됩니다.
@@ -239,7 +257,7 @@ KAKAO_REDIRECT_URI=http://127.0.0.1:8001/auth/social/kakao/callback
 
 | 명령어 | 설명 |
 | --- | --- |
-| `php artisan serve --port=8001` | 로컬 서버 실행 |
+| `php artisan serve --port=8000` | 로컬 서버 실행 |
 | `php artisan migrate` | 새 DB 변경 사항 적용 |
 | `php artisan migrate:fresh` | 모든 테이블을 지우고 다시 생성하므로 주의 |
 | `php artisan route:list` | 등록된 URL 목록 확인 |

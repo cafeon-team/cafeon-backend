@@ -17,14 +17,25 @@ class OwnerOrderApiTest extends TestCase
     public function test_owner_can_list_store_orders_with_filters(): void
     {
         [$owner, $store] = $this->fixture();
-        $customer = User::factory()->create(['name' => '검색 고객']);
+        $customer = User::factory()->create([
+            'name' => '검색 고객',
+            'profile_image_url' => 'https://cdn.example.com/customers/search-customer.jpg',
+            'profile_thumbnail_url' => 'https://cdn.example.com/customers/search-customer-thumb.webp',
+        ]);
         $order = $this->order($customer, $store, 'PAID');
         Sanctum::actingAs($owner);
 
         $this->getJson("/api/owner/stores/{$store->id}/orders?status=PAID&keyword=검색")
             ->assertOk()
             ->assertJsonPath('data.0.id', $order->id)
-            ->assertJsonPath('data.0.user.name', '검색 고객');
+            ->assertJsonPath('data.0.user.name', '검색 고객')
+            ->assertJsonPath('data.0.user.profile_image_url', 'https://cdn.example.com/customers/search-customer-thumb.webp')
+            ->assertJsonPath('data.0.profile_image_url', 'https://cdn.example.com/customers/search-customer-thumb.webp');
+
+        $this->getJson("/api/owner/stores/{$store->id}/dashboard")
+            ->assertOk()
+            ->assertJsonPath('orders.0.profile_image_url', 'https://cdn.example.com/customers/search-customer-thumb.webp')
+            ->assertJsonPath('orders.0.customerProfileImageUrl', 'https://cdn.example.com/customers/search-customer-thumb.webp');
     }
 
     public function test_owner_can_advance_paid_order_until_completed(): void

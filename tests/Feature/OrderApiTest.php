@@ -23,10 +23,16 @@ class OrderApiTest extends TestCase
             'store_id' => $store->id,
             'items' => [['menu_id' => $menu->id, 'quantity' => 2]],
         ])->assertCreated()
+            ->assertJsonPath('order.total_amount', '10000.00')
+            ->assertJsonPath('order.menu_amount', '10000.00')
             ->assertJsonPath('order.final_amount', '10000.00')
             ->assertJsonPath('order.items.0.menu_name', 'Latte');
 
         $orderId = $response->json('order.id');
+        $this->assertDatabaseHas((new Order)->getTable(), [
+            'id' => $orderId,
+            'total_amount' => 10000,
+        ]);
         $this->getJson('/api/users/me/orders')->assertOk()->assertJsonCount(1, 'data');
         $this->postJson("/api/users/me/orders/{$orderId}/cancel")
             ->assertOk()

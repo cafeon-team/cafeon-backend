@@ -23,8 +23,9 @@ class OwnerRegistrationApiTest extends TestCase
         ]);
 
         $response->assertCreated()
-            ->assertJsonStructure(['token', 'token_type', 'user', 'store', 'membership'])
+            ->assertJsonStructure(['token', 'token_type', 'user', 'store_id', 'store', 'membership'])
             ->assertJsonPath('user.role', 'ADMIN')
+            ->assertJsonPath('store_id', fn ($value) => is_int($value))
             ->assertJsonPath('store.name', '카페온 강남점')
             ->assertJsonPath('store.address', null)
             ->assertJsonPath('membership.role', 'OWNER');

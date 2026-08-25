@@ -12,7 +12,7 @@ class Order extends Model
     protected function casts(): array
     {
         return [
-            'menu_amount'=>'decimal:2','deposit_amount'=>'decimal:2',
+            'total_amount'=>'decimal:2','menu_amount'=>'decimal:2','deposit_amount'=>'decimal:2',
             'coupon_discount_amount'=>'decimal:2','point_used'=>'integer','final_amount'=>'decimal:2',
             'paid_at'=>'datetime','preparing_at'=>'datetime','ready_at'=>'datetime',
             'completed_at'=>'datetime','cancelled_at'=>'datetime','refunded_at'=>'datetime',
