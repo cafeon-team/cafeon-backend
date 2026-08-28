@@ -53,6 +53,14 @@
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
         ],
+        "deploy": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan optimize:clear --ansi",
+            "@php artisan uploads:prepare --ansi",
+            "@php artisan migrate --force --ansi",
+            "@php artisan swagger:generate-routes --ansi",
+            "@php artisan optimize --ansi"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

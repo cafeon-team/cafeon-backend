@@ -5,37 +5,28 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UploadImageRequest;
 use App\Models\UploadedImage;
+use App\Services\ImageStorageService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use RuntimeException;
-use Throwable;
 
 class ImageUploadController extends Controller
 {
+    public function __construct(private readonly ImageStorageService $images) {}
+
     public function store(UploadImageRequest $request): JsonResponse
     {
         $file = $request->file('image');
-        $path = null;
 
         try {
-            $path = $file->store('blog', 'public');
-            if (! is_string($path) || $path === '') {
-                throw new RuntimeException('Public disk returned an empty upload path.');
-            }
-
+            $stored = $this->images->store($file);
             UploadedImage::create([
                 'user_id' => $request->user()->id,
-                'disk' => 'public',
-                'path' => $path,
+                'disk' => $stored['disk'],
+                'path' => $stored['path'],
                 'mime_type' => $file->getMimeType(),
                 'size' => $file->getSize(),
             ]);
-        } catch (Throwable $exception) {
-            if (is_string($path) && $path !== '') {
-                Storage::disk('public')->delete($path);
-            }
-
+        } catch (RuntimeException $exception) {
             report($exception);
 
             return response()->json([
@@ -44,12 +35,10 @@ class ImageUploadController extends Controller
             ], 503);
         }
 
-        $url = Storage::disk('public')->url($path);
-
         return response()->json([
-            'path' => $path,
-            'url' => Str::startsWith($url, ['http://', 'https://']) ? $url : url($url),
-            'image_url' => Str::startsWith($url, ['http://', 'https://']) ? $url : url($url),
+            'path' => $stored['path'],
+            'url' => $stored['url'],
+            'image_url' => $stored['url'],
         ], 201);
     }
 }

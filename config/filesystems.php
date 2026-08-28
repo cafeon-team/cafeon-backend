@@ -2,6 +2,8 @@
 
 return [
 
+    'upload_disk' => env('IMAGE_UPLOAD_DISK', 'public'),
+
     /*
     |--------------------------------------------------------------------------
     | Default Filesystem Disk
@@ -40,8 +42,19 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            'root' => env('PUBLIC_UPLOAD_ROOT', public_path('uploads')),
+            'url' => env('PUBLIC_UPLOAD_URL', rtrim(env('APP_URL', 'http://localhost'), '/').'/uploads'),
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // Shared hosting environments do not always allow a public/storage
+        // symlink. This disk stores uploads directly below the web root.
+        'uploads' => [
+            'driver' => 'local',
+            'root' => env('UPLOAD_ROOT', public_path('uploads')),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/uploads',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
