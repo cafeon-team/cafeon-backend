@@ -43,11 +43,11 @@ Route::get('/', function () {
 });
 
 // API 명세서 기준 인증 경로
-// 임시 운영 조치: 동시 접속 시 로그인 요청이 429로 차단되지 않도록 제한을 해제한다.
-// 운영 안정화 후 이메일+IP 기준의 전용 로그인 limiter를 적용할 것.
-Route::post('/auth/login', [AuthController::class, 'login']);
-Route::post('/auth/customer/login', [AuthController::class, 'loginCustomer']);
-Route::post('/auth/owner/login', [AuthController::class, 'loginOwner']);
+// 무차별 로그인 시도를 막되 정상 사용자가 역할별 경로를 바꿔 우회할 수 없도록
+// 모든 이메일 로그인 경로에 같은 IP 기준 제한을 적용한다.
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+Route::post('/auth/customer/login', [AuthController::class, 'loginCustomer'])->middleware('throttle:5,1');
+Route::post('/auth/owner/login', [AuthController::class, 'loginOwner'])->middleware('throttle:5,1');
 Route::post('/auth/signup', [AuthController::class, 'register']);
 Route::post('/auth/owner/signup', [AuthController::class, 'registerOwner'])
     ->middleware('throttle:10,1');
