@@ -39,9 +39,9 @@ class AuthLoginSecurityTest extends TestCase
         ]);
 
         $this->postJson('/api/auth/owner/login', [
-                'email' => 'customer@cafeon.test',
-                'password' => 'password1234',
-            ])->assertForbidden()
+            'email' => 'customer@cafeon.test',
+            'password' => 'password1234',
+        ])->assertForbidden()
             ->assertJsonPath('message', '손님 계정은 사장님 화면에서 로그인할 수 없습니다.');
     }
 
@@ -79,11 +79,11 @@ class AuthLoginSecurityTest extends TestCase
         ])->assertForbidden();
     }
 
-    public function test_login_is_limited_to_five_requests_per_minute_per_ip(): void
+    public function test_login_is_limited_to_ten_requests_per_minute_per_email_and_ip(): void
     {
         $client = $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.77']);
 
-        foreach (range(1, 5) as $_) {
+        foreach (range(1, 10) as $_) {
             $client->postJson('/api/auth/login', [
                 'email' => 'missing@cafeon.test',
                 'password' => 'wrong-password',
@@ -94,5 +94,17 @@ class AuthLoginSecurityTest extends TestCase
             'email' => 'missing@cafeon.test',
             'password' => 'wrong-password',
         ])->assertTooManyRequests();
+    }
+
+    public function test_different_accounts_on_the_same_ip_do_not_share_the_small_limit(): void
+    {
+        $client = $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.78']);
+
+        foreach (range(1, 10) as $number) {
+            $client->postJson('/api/auth/customer/login', [
+                'email' => "missing{$number}@cafeon.test",
+                'password' => 'wrong-password',
+            ])->assertUnprocessable();
+        }
     }
 }

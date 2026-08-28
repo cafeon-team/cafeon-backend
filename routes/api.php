@@ -43,11 +43,10 @@ Route::get('/', function () {
 });
 
 // API 명세서 기준 인증 경로
-// 무차별 로그인 시도를 막되 정상 사용자가 역할별 경로를 바꿔 우회할 수 없도록
-// 모든 이메일 로그인 경로에 같은 IP 기준 제한을 적용한다.
-Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
-Route::post('/auth/customer/login', [AuthController::class, 'loginCustomer'])->middleware('throttle:5,1');
-Route::post('/auth/owner/login', [AuthController::class, 'loginOwner'])->middleware('throttle:5,1');
+// 이메일+IP 단위 10회, IP 전체 50회 제한으로 정상 사용자와 무차별 대입 공격을 구분한다.
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:login');
+Route::post('/auth/customer/login', [AuthController::class, 'loginCustomer'])->middleware('throttle:login');
+Route::post('/auth/owner/login', [AuthController::class, 'loginOwner'])->middleware('throttle:login');
 Route::post('/auth/signup', [AuthController::class, 'register']);
 Route::post('/auth/owner/signup', [AuthController::class, 'registerOwner'])
     ->middleware('throttle:10,1');
@@ -56,7 +55,7 @@ Route::post('/webhooks/toss-payments', [PaymentController::class, 'webhook'])
     ->middleware('throttle:120,1');
 
 // 기존 프론트엔드 호환용 경로(추후 제거 가능)
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::get('/map/stores', [MapStoreController::class, 'index']);
