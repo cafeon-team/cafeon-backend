@@ -188,7 +188,7 @@ class OwnerMenuController extends Controller
             'category_id' => [$updating ? 'sometimes' : 'nullable', 'nullable', 'integer', 'exists:menu_categories,id'],
             'name' => [$updating ? 'sometimes' : 'required', 'string', 'max:100'],
             'description' => ['sometimes', 'nullable', 'string', 'max:5000'],
-            'price' => [$updating ? 'sometimes' : 'required', 'numeric', 'min:0', 'max:10000000'],
+            'price' => [$updating ? 'sometimes' : 'required', 'numeric', 'min:1', 'max:10000000'],
             'image_url' => ['sometimes', 'nullable', 'url', 'max:500'],
             'is_available' => ['sometimes', 'boolean'],
             'stock_quantity' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:1000000'],

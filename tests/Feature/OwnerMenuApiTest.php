@@ -99,6 +99,21 @@ class OwnerMenuApiTest extends TestCase
         $this->assertDatabaseMissing('menus', ['name' => '잘못된 메뉴']);
     }
 
+    public function test_owner_cannot_create_or_update_a_zero_price_menu(): void
+    {
+        [$owner, $store] = $this->fixture();
+        Sanctum::actingAs($owner);
+
+        $this->postJson("/api/owner/stores/{$store->id}/menus", [
+            'name' => '가격 미입력 메뉴',
+            'price' => 0,
+        ])->assertUnprocessable()->assertJsonValidationErrors('price');
+
+        $menu = Menu::create(['store_id' => $store->id, 'name' => '기존 메뉴', 'price' => 4000]);
+        $this->putJson("/api/owner/menus/{$menu->id}", ['price' => 0])
+            ->assertUnprocessable()->assertJsonValidationErrors('price');
+    }
+
     public function test_mobile_owner_can_create_menu_with_data_url_image(): void
     {
         Storage::fake('public');

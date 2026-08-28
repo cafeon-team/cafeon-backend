@@ -33,6 +33,7 @@ class OrderService
                 $menu = $menus->get($item['menu_id']);
                 abort_unless($menu->store_id === (int) $data['store_id'], 422, '다른 매장의 메뉴는 함께 주문할 수 없습니다.');
                 abort_unless($menu->is_available, 422, "현재 주문할 수 없는 메뉴입니다: {$menu->name}");
+                abort_unless((float) $menu->price > 0, 422, "가격이 설정되지 않은 메뉴입니다: {$menu->name}");
                 abort_if(
                     $menu->stock_quantity !== null && $menu->stock_quantity < (int) $item['quantity'],
                     422,

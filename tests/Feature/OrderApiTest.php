@@ -54,6 +54,21 @@ class OrderApiTest extends TestCase
         $this->assertDatabaseCount((new Order)->getTable(), 0);
     }
 
+    public function test_order_rejects_menu_without_a_positive_price(): void
+    {
+        $user = User::factory()->create();
+        $store = Store::create(['name' => 'Zero Cafe', 'slug' => 'zero-cafe', 'address' => 'Seoul', 'is_active' => true]);
+        $menu = Menu::create(['store_id' => $store->id, 'name' => '가격 미설정 메뉴', 'price' => 0, 'is_available' => true]);
+
+        $this->actingAs($user, 'sanctum')->postJson('/api/orders', [
+            'store_id' => $store->id,
+            'items' => [['menu_id' => $menu->id, 'quantity' => 1]],
+        ])->assertUnprocessable()
+            ->assertJsonPath('message', '가격이 설정되지 않은 메뉴입니다: 가격 미설정 메뉴');
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
     public function test_last_stock_is_atomically_sold_out_and_restored_on_cancellation(): void
     {
         $customer = User::factory()->create();
