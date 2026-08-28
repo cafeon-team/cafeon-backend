@@ -42,7 +42,9 @@ class BlogOperationsApiTest extends TestCase
         $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=');
         $response = $this->postJson('/api/uploads/images', [
             'image' => UploadedFile::fake()->createWithContent('cake.png', $png),
-        ])->assertCreated()->assertJsonStructure(['path', 'url']);
+        ])->assertCreated()
+            ->assertJsonStructure(['path', 'url', 'image_url'])
+            ->assertJsonPath('image_url', fn ($url) => is_string($url) && str_contains($url, '/storage/blog/'));
 
         Storage::disk('public')->assertExists($response->json('path'));
     }

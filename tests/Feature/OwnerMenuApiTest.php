@@ -46,7 +46,7 @@ class OwnerMenuApiTest extends TestCase
         $this->assertSoftDeleted('menus', ['id' => $menuId]);
     }
 
-    public function test_owner_can_mark_menu_sold_out_and_public_api_hides_it(): void
+    public function test_owner_can_mark_menu_sold_out_and_public_api_still_shows_it(): void
     {
         [$owner, $store] = $this->fixture();
         $menu = Menu::create(['store_id' => $store->id, 'name' => '아메리카노', 'price' => 4500, 'is_available' => true]);
@@ -54,9 +54,36 @@ class OwnerMenuApiTest extends TestCase
 
         $this->patchJson("/api/owner/menus/{$menu->id}/availability", ['is_available' => false])
             ->assertOk()->assertJsonPath('menu.is_available', false);
-        $this->getJson("/api/stores/{$store->id}/menus")->assertOk()->assertJsonCount(0, 'data');
+        $this->getJson("/api/stores/{$store->id}/menus")
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $menu->id)
+            ->assertJsonPath('data.0.is_available', false);
         $this->getJson("/api/owner/stores/{$store->id}/menus?is_available=0")
             ->assertOk()->assertJsonPath('menus.data.0.id', $menu->id);
+    }
+
+    public function test_owner_can_set_numeric_stock_and_zero_stock_cannot_be_reactivated(): void
+    {
+        [$owner, $store] = $this->fixture();
+        Sanctum::actingAs($owner);
+
+        $menuId = $this->postJson("/api/owner/stores/{$store->id}/menus", [
+            'name' => '한정 메뉴',
+            'price' => 7000,
+            'stockQuantity' => 1,
+        ])->assertCreated()
+            ->assertJsonPath('menu.stock_quantity', 1)
+            ->assertJsonPath('menu.is_available', true)
+            ->json('menu.id');
+
+        $this->putJson("/api/owner/menus/{$menuId}", ['stock_quantity' => 0])
+            ->assertOk()
+            ->assertJsonPath('menu.stock_quantity', 0)
+            ->assertJsonPath('menu.is_available', false);
+
+        $this->patchJson("/api/owner/menus/{$menuId}/availability", ['is_available' => true])
+            ->assertUnprocessable();
     }
 
     public function test_menu_rejects_category_from_another_store(): void

@@ -33,6 +33,11 @@ class OrderService
                 $menu = $menus->get($item['menu_id']);
                 abort_unless($menu->store_id === (int) $data['store_id'], 422, '다른 매장의 메뉴는 함께 주문할 수 없습니다.');
                 abort_unless($menu->is_available, 422, "현재 주문할 수 없는 메뉴입니다: {$menu->name}");
+                abort_if(
+                    $menu->stock_quantity !== null && $menu->stock_quantity < (int) $item['quantity'],
+                    422,
+                    "메뉴 재고가 부족합니다: {$menu->name} (남은 수량 {$menu->stock_quantity}개)"
+                );
                 $amount = (float) $menu->price * (int) $item['quantity'];
 
                 return ['menu' => $menu, 'quantity' => (int) $item['quantity'], 'amount' => $amount];
@@ -109,6 +114,15 @@ class OrderService
                     'quantity' => $line['quantity'],
                     'line_amount' => $line['amount'],
                 ]);
+
+                $menu = $line['menu'];
+                if ($menu->stock_quantity !== null) {
+                    $remainingStock = $menu->stock_quantity - $line['quantity'];
+                    $menu->forceFill([
+                        'stock_quantity' => $remainingStock,
+                        'is_available' => $remainingStock > 0,
+                    ])->save();
+                }
             }
 
             if ($userCoupon) {
@@ -139,6 +153,26 @@ class OrderService
             $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
             abort_unless($lockedOrder->user_id === $user->id, 404);
             abort_unless($lockedOrder->status === 'PENDING_PAYMENT', 422, '결제 대기 주문만 취소할 수 있습니다.');
+
+            $orderItems = $lockedOrder->items()->get();
+            $stockMenus = Menu::query()->withTrashed()
+                ->whereIn('id', $orderItems->pluck('menu_id')->filter())
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            foreach ($orderItems as $item) {
+                $menu = $stockMenus->get($item->menu_id);
+                if (! $menu || $menu->stock_quantity === null) {
+                    continue;
+                }
+
+                $wasAutomaticallySoldOut = $menu->stock_quantity === 0;
+                $menu->forceFill([
+                    'stock_quantity' => $menu->stock_quantity + $item->quantity,
+                    'is_available' => $wasAutomaticallySoldOut ? true : $menu->is_available,
+                ])->save();
+            }
 
             if ($lockedOrder->point_used > 0) {
                 $account = CustomerStoreAccount::query()

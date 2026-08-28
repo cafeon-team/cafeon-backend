@@ -48,7 +48,7 @@ class StoreController extends Controller
             'businessHours',
             'closures' => fn ($query) => $query->whereDate('closure_date', '>=', today())->orderBy('closure_date'),
             'seats' => fn ($query) => $query->where('is_active', true)->orderBy('floor_number')->orderBy('seat_code'),
-            'menuCategories.menus' => fn ($query) => $query->where('is_available', true),
+            'menuCategories.menus',
             'tags:id,store_id,name,slug',
         ]);
 

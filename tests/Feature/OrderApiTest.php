@@ -53,4 +53,47 @@ class OrderApiTest extends TestCase
 
         $this->assertDatabaseCount((new Order)->getTable(), 0);
     }
+
+    public function test_last_stock_is_atomically_sold_out_and_restored_on_cancellation(): void
+    {
+        $customer = User::factory()->create();
+        $otherCustomer = User::factory()->create();
+        $store = Store::create(['name' => 'Stock Cafe', 'slug' => 'stock-cafe', 'address' => 'Seoul', 'is_active' => true]);
+        $menu = Menu::create([
+            'store_id' => $store->id,
+            'name' => 'Watermelon Juice',
+            'price' => 6300,
+            'is_available' => true,
+            'stock_quantity' => 1,
+        ]);
+
+        $orderId = $this->actingAs($customer, 'sanctum')->postJson('/api/orders', [
+            'store_id' => $store->id,
+            'items' => [['menu_id' => $menu->id, 'quantity' => 1]],
+        ])->assertCreated()->json('order.id');
+
+        $this->assertDatabaseHas('menus', [
+            'id' => $menu->id,
+            'stock_quantity' => 0,
+            'is_available' => false,
+        ]);
+        $this->getJson("/api/stores/{$store->id}/menus")
+            ->assertOk()
+            ->assertJsonPath('data.0.stock_quantity', 0)
+            ->assertJsonPath('data.0.is_available', false);
+
+        $this->actingAs($otherCustomer, 'sanctum')->postJson('/api/orders', [
+            'store_id' => $store->id,
+            'items' => [['menu_id' => $menu->id, 'quantity' => 1]],
+        ])->assertUnprocessable();
+        $this->assertDatabaseCount('orders', 1);
+
+        $this->actingAs($customer, 'sanctum')->postJson("/api/users/me/orders/{$orderId}/cancel")
+            ->assertOk();
+        $this->assertDatabaseHas('menus', [
+            'id' => $menu->id,
+            'stock_quantity' => 1,
+            'is_available' => true,
+        ]);
+    }
 }

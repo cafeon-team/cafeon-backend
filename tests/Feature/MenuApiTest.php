@@ -12,7 +12,7 @@ class MenuApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_available_menus_can_be_searched_filtered_and_sorted(): void
+    public function test_menus_including_sold_out_items_can_be_searched_filtered_and_sorted(): void
     {
         $store = Store::create(['name' => 'CafeON', 'slug' => 'cafeon', 'address' => 'Seoul', 'is_active' => true]);
         $coffee = MenuCategory::create(['store_id' => $store->id, 'name' => 'Coffee', 'is_active' => true]);
@@ -25,9 +25,11 @@ class MenuApiTest extends TestCase
 
         $this->getJson("/api/stores/{$store->id}/menus?keyword=Latte&category_id={$coffee->id}&sort=price_asc")
             ->assertOk()
-            ->assertJsonCount(2, 'data')
-            ->assertJsonPath('data.0.name', 'Cafe Latte')
-            ->assertJsonPath('data.1.name', 'Vanilla Latte');
+            ->assertJsonCount(3, 'data')
+            ->assertJsonPath('data.0.name', 'Hidden Latte')
+            ->assertJsonPath('data.0.is_available', false)
+            ->assertJsonPath('data.1.name', 'Cafe Latte')
+            ->assertJsonPath('data.2.name', 'Vanilla Latte');
     }
 
     public function test_menu_detail_returns_store_and_category(): void
@@ -41,5 +43,21 @@ class MenuApiTest extends TestCase
             ->assertJsonPath('menu.name', 'Americano')
             ->assertJsonPath('menu.store.slug', 'cafeon')
             ->assertJsonPath('menu.category.name', 'Coffee');
+    }
+
+    public function test_sold_out_menu_detail_is_visible_but_marked_unavailable(): void
+    {
+        $store = Store::create(['name' => 'CafeON', 'slug' => 'sold-out-cafe', 'address' => 'Seoul', 'is_active' => true]);
+        $menu = Menu::create([
+            'store_id' => $store->id,
+            'name' => 'Watermelon Juice',
+            'price' => 6300,
+            'is_available' => false,
+        ]);
+
+        $this->getJson("/api/menus/{$menu->id}")
+            ->assertOk()
+            ->assertJsonPath('menu.name', 'Watermelon Juice')
+            ->assertJsonPath('menu.is_available', false);
     }
 }

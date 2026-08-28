@@ -213,7 +213,12 @@ class GenerateRouteSwagger extends Command
         $document['paths']['/api/uploads/images']['post']['responses']['201'] = $this->jsonResponse([
             'path' => ['type' => 'string', 'example' => 'blog/example.jpg'],
             'url' => ['type' => 'string', 'format' => 'uri'],
+            'image_url' => ['type' => 'string', 'format' => 'uri'],
         ], '업로드 및 소유권 기록 성공');
+        $document['paths']['/api/uploads/images']['post']['responses']['503'] = $this->jsonResponse([
+            'message' => ['type' => 'string'],
+            'error_code' => ['type' => 'string', 'example' => 'IMAGE_STORAGE_UNAVAILABLE'],
+        ], '이미지 저장소 또는 업로드 메타데이터 DB 사용 불가');
     }
 
     private function applyOwnerOperationContracts(array &$document): void

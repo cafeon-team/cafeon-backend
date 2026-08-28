@@ -177,6 +177,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/owner/stores/{store}/business-status', [OwnerStoreController::class, 'updateBusinessStatus']);
     Route::get('/owner/stores/{store}/menus', [OwnerMenuController::class, 'index']);
     Route::get('/owner/stores/{store}/orders', [OwnerOrderController::class, 'index']);
+    Route::post('/owner/orders/{order}/cancel', [OwnerOrderController::class, 'cancel']);
     Route::patch('/owner/orders/{order}/status', [OwnerOrderController::class, 'updateStatus']);
     Route::get('/owner/stores/{store}/inventory', [OwnerInventoryController::class, 'index']);
     Route::post('/owner/stores/{store}/inventory', [OwnerInventoryController::class, 'store']);

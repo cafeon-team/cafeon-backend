@@ -139,6 +139,7 @@ class OwnerMenuController extends Controller
         $menu->loadMissing('store');
         $this->authorizeStore($request, $menu->store);
         $validated = $request->validate(['is_available' => ['required', 'boolean']]);
+        abort_if($validated['is_available'] && $menu->stock_quantity === 0, 422, '재고가 0개인 메뉴는 판매를 시작할 수 없습니다.');
         $menu->update($validated);
 
         return response()->json([
@@ -174,6 +175,14 @@ class OwnerMenuController extends Controller
         if (! $request->has('is_available') && $request->has('soldOut')) {
             $request->merge(['is_available' => ! $request->boolean('soldOut')]);
         }
+        if (! $request->has('stock_quantity')) {
+            foreach (['stockQuantity', 'stock', 'quantity'] as $stockAlias) {
+                if ($request->has($stockAlias)) {
+                    $request->merge(['stock_quantity' => $request->input($stockAlias)]);
+                    break;
+                }
+            }
+        }
 
         $validated = $request->validate([
             'category_id' => [$updating ? 'sometimes' : 'nullable', 'nullable', 'integer', 'exists:menu_categories,id'],
@@ -182,7 +191,16 @@ class OwnerMenuController extends Controller
             'price' => [$updating ? 'sometimes' : 'required', 'numeric', 'min:0', 'max:10000000'],
             'image_url' => ['sometimes', 'nullable', 'url', 'max:500'],
             'is_available' => ['sometimes', 'boolean'],
+            'stock_quantity' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:1000000'],
         ]);
+
+        if (array_key_exists('stock_quantity', $validated)) {
+            if ($validated['stock_quantity'] === 0) {
+                $validated['is_available'] = false;
+            } elseif ($validated['stock_quantity'] !== null && ! array_key_exists('is_available', $validated)) {
+                $validated['is_available'] = true;
+            }
+        }
 
         if (array_key_exists('category_id', $validated) && $validated['category_id'] !== null) {
             abort_unless(MenuCategory::whereKey($validated['category_id'])->where('store_id', $store->id)->exists(), 422, '다른 매장의 카테고리는 사용할 수 없습니다.');
