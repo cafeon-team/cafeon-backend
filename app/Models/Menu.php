@@ -11,7 +11,7 @@ class Menu extends Model
 {
     use SoftDeletes;
     protected $guarded = [];
-    protected function casts(): array { return ['price' => 'decimal:2', 'is_available' => 'boolean']; }
+    protected function casts(): array { return ['price' => 'decimal:2', 'is_available' => 'boolean', 'stock_quantity' => 'integer']; }
     public function store(): BelongsTo { return $this->belongsTo(Store::class); }
     public function category(): BelongsTo { return $this->belongsTo(MenuCategory::class, 'category_id'); }
     public function orderItems(): HasMany { return $this->hasMany(OrderItem::class); }

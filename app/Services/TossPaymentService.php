@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Menu;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentWebhookEvent;
@@ -80,15 +81,31 @@ class TossPaymentService
 
     public function refund(User $user, Order $order, string $reason): array
     {
-        return DB::transaction(function () use ($user, $order, $reason) {
+        return $this->refundOrder($order, $reason, $user);
+    }
+
+    public function refundForOwner(Order $order, string $reason): array
+    {
+        return $this->refundOrder($order, $reason);
+    }
+
+    private function refundOrder(Order $order, string $reason, ?User $customer = null): array
+    {
+        return DB::transaction(function () use ($customer, $order, $reason) {
             $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
-            abort_unless($lockedOrder->user_id === $user->id, 404);
+            if ($customer) {
+                abort_unless($lockedOrder->user_id === $customer->id, 404);
+            }
             $payment = Payment::query()->where('order_id', $lockedOrder->id)->lockForUpdate()->firstOrFail();
 
             if ($lockedOrder->status === 'REFUNDED' && $payment->status === 'CANCELLED') {
                 return ['status' => 200, 'body' => ['message' => '이미 환불된 주문입니다.', 'idempotent' => true, 'order' => $lockedOrder, 'payment' => $payment]];
             }
-            abort_unless($lockedOrder->status === 'PAID' && $payment->status === 'DONE', 422, '환불할 수 없는 주문 상태입니다.');
+            abort_unless(
+                in_array($lockedOrder->status, ['PAID', 'PREPARING', 'READY'], true) && $payment->status === 'DONE',
+                422,
+                '환불할 수 없는 주문 상태입니다.'
+            );
             abort_unless(filled($payment->payment_key), 422, '결제키가 없는 주문입니다.');
 
             $response = $this->request('POST', '/v1/payments/'.rawurlencode($payment->payment_key).'/cancel', [
@@ -196,6 +213,15 @@ class TossPaymentService
 
     private function restoreBenefits(Order $order): void
     {
+        $order->loadMissing('items');
+        foreach ($order->items as $item) {
+            $menu = Menu::query()->lockForUpdate()->find($item->menu_id);
+            if ($menu?->stock_quantity !== null) {
+                $menu->increment('stock_quantity', $item->quantity);
+                $menu->forceFill(['is_available' => true])->save();
+            }
+        }
+
         if ($order->point_used > 0) {
             $account = $order->user->customerStoreAccounts()->where('store_id', $order->store_id)->lockForUpdate()->firstOrFail();
             $key = 'order-point-refund-'.$order->id;

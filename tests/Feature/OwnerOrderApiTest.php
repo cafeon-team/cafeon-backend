@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Store;
 use App\Models\StoreMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -17,14 +19,25 @@ class OwnerOrderApiTest extends TestCase
     public function test_owner_can_list_store_orders_with_filters(): void
     {
         [$owner, $store] = $this->fixture();
-        $customer = User::factory()->create(['name' => '검색 고객']);
+        $customer = User::factory()->create([
+            'name' => '검색 고객',
+            'profile_image_url' => 'https://cdn.example.com/customers/search-customer.jpg',
+            'profile_thumbnail_url' => 'https://cdn.example.com/customers/search-customer-thumb.webp',
+        ]);
         $order = $this->order($customer, $store, 'PAID');
         Sanctum::actingAs($owner);
 
         $this->getJson("/api/owner/stores/{$store->id}/orders?status=PAID&keyword=검색")
             ->assertOk()
             ->assertJsonPath('data.0.id', $order->id)
-            ->assertJsonPath('data.0.user.name', '검색 고객');
+            ->assertJsonPath('data.0.user.name', '검색 고객')
+            ->assertJsonPath('data.0.user.profile_image_url', 'https://cdn.example.com/customers/search-customer-thumb.webp')
+            ->assertJsonPath('data.0.profile_image_url', 'https://cdn.example.com/customers/search-customer-thumb.webp');
+
+        $this->getJson("/api/owner/stores/{$store->id}/dashboard")
+            ->assertOk()
+            ->assertJsonPath('orders.0.profile_image_url', 'https://cdn.example.com/customers/search-customer-thumb.webp')
+            ->assertJsonPath('orders.0.customerProfileImageUrl', 'https://cdn.example.com/customers/search-customer-thumb.webp');
     }
 
     public function test_owner_can_advance_paid_order_until_completed(): void
@@ -64,6 +77,72 @@ class OwnerOrderApiTest extends TestCase
         $this->patchJson("/api/owner/orders/{$order->id}/status", ['status' => 'REFUNDED'])
             ->assertUnprocessable()->assertJsonValidationErrors('status');
         $this->assertDatabaseHas('orders', ['id' => $order->id, 'status' => 'PAID']);
+    }
+
+    public function test_owner_can_reject_a_paid_order_and_refund_its_payment(): void
+    {
+        config(['services.toss_payments.secret_key' => 'test-secret']);
+        Http::fake([
+            '*/v1/payments/payment-key/cancel' => Http::response([
+                'paymentKey' => 'payment-key',
+                'cancels' => [['cancelAmount' => 5000]],
+            ]),
+        ]);
+
+        [$owner, $store] = $this->fixture();
+        $customer = User::factory()->create();
+        $order = $this->order($customer, $store, 'PAID');
+        Payment::create([
+            'order_id' => $order->id,
+            'toss_order_id' => 'toss-'.$order->id,
+            'payment_key' => 'payment-key',
+            'amount' => 5000,
+            'status' => 'DONE',
+            'approved_at' => now(),
+        ]);
+        Sanctum::actingAs($owner);
+
+        $this->postJson("/api/owner/orders/{$order->id}/cancel")
+            ->assertOk()
+            ->assertJsonPath('order.status', 'REFUNDED');
+
+        $this->assertDatabaseHas('payments', [
+            'order_id' => $order->id,
+            'status' => 'CANCELLED',
+            'cancelled_amount' => 5000,
+        ]);
+        $this->assertDatabaseHas('user_notifications', [
+            'user_id' => $customer->id,
+            'title' => '주문이 거절되었습니다.',
+        ]);
+        Http::assertSent(fn ($request) => str_ends_with($request->url(), '/v1/payments/payment-key/cancel'));
+    }
+
+    public function test_owner_can_cancel_an_order_that_is_already_being_prepared(): void
+    {
+        config(['services.toss_payments.secret_key' => 'test-secret']);
+        Http::fake([
+            '*/v1/payments/preparing-payment-key/cancel' => Http::response([
+                'paymentKey' => 'preparing-payment-key',
+                'cancels' => [['cancelAmount' => 5000]],
+            ]),
+        ]);
+
+        [$owner, $store] = $this->fixture();
+        $order = $this->order(User::factory()->create(), $store, 'PREPARING');
+        Payment::create([
+            'order_id' => $order->id,
+            'toss_order_id' => 'toss-'.$order->id,
+            'payment_key' => 'preparing-payment-key',
+            'amount' => 5000,
+            'status' => 'DONE',
+            'approved_at' => now(),
+        ]);
+        Sanctum::actingAs($owner);
+
+        $this->postJson("/api/owner/orders/{$order->id}/cancel")
+            ->assertOk()
+            ->assertJsonPath('order.status', 'REFUNDED');
     }
 
     public function test_unrelated_user_cannot_manage_orders(): void

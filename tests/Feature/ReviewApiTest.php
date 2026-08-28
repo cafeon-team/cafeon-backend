@@ -7,6 +7,8 @@ use App\Models\Order;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ReviewApiTest extends TestCase
@@ -16,23 +18,50 @@ class ReviewApiTest extends TestCase
     public function test_visitor_can_create_update_list_and_delete_review(): void
     {
         [$user, $store, $visit] = $this->visitFixture();
+        Storage::fake('public');
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=');
+        $upload = $this->actingAs($user, 'sanctum')->postJson('/api/uploads/images', [
+            'image' => UploadedFile::fake()->createWithContent('review.png', $png),
+        ])->assertCreated();
 
-        $response = $this->actingAs($user, 'sanctum')->postJson("/api/stores/{$store->id}/reviews", [
+        $response = $this->postJson("/api/stores/{$store->id}/reviews", [
             'customer_visit_id' => $visit->id,
             'rating' => 5,
             'content' => 'Great cafe',
-            'image_urls' => ['https://example.com/review.jpg'],
+            'image_urls' => [$upload->json('url')],
         ])->assertCreated()
             ->assertJsonPath('review.rating', 5)
             ->assertJsonPath('review.is_verified_purchase', true)
             ->assertJsonCount(1, 'review.images');
 
         $reviewId = $response->json('review.id');
+        $this->assertDatabaseHas('uploaded_images', ['user_id' => $user->id, 'attached_type' => 'review', 'attached_id' => $reviewId]);
         $this->getJson("/api/stores/{$store->id}/reviews")->assertOk()->assertJsonCount(1, 'data');
         $this->putJson("/api/reviews/{$reviewId}", ['rating' => 4, 'content' => 'Updated'])
             ->assertOk()->assertJsonPath('review.rating', 4);
         $this->deleteJson("/api/reviews/{$reviewId}")->assertOk();
         $this->assertSoftDeleted('reviews', ['id' => $reviewId]);
+        Storage::disk('public')->assertMissing($upload->json('path'));
+        $this->assertDatabaseMissing('uploaded_images', ['path' => $upload->json('path')]);
+    }
+
+    public function test_review_rejects_external_or_another_users_upload(): void
+    {
+        Storage::fake('public');
+        [$user, $store, $visit] = $this->visitFixture();
+        $other = User::factory()->create();
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=');
+        $upload = $this->actingAs($other, 'sanctum')->postJson('/api/uploads/images', [
+            'image' => UploadedFile::fake()->createWithContent('other.png', $png),
+        ])->assertCreated();
+
+        $payload = ['customer_visit_id' => $visit->id, 'rating' => 5, 'content' => '사진 검증'];
+        $this->actingAs($user, 'sanctum')->postJson("/api/stores/{$store->id}/reviews", [
+            ...$payload, 'image_urls' => [$upload->json('url')],
+        ])->assertUnprocessable()->assertJsonValidationErrors('image_urls.0');
+        $this->postJson("/api/stores/{$store->id}/reviews", [
+            ...$payload, 'image_urls' => ['https://example.com/not-owned.jpg'],
+        ])->assertUnprocessable()->assertJsonValidationErrors('image_urls.0');
     }
 
     public function test_user_without_completed_visit_cannot_write_review(): void

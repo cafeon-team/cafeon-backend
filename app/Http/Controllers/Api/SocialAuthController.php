@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\SocialAccount;
+use App\Models\Store;
 use App\Models\User;
+use App\Services\OwnerProfileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 use Throwable;
 
 class SocialAuthController extends Controller
@@ -21,12 +24,25 @@ class SocialAuthController extends Controller
 
     private const ROLES = ['CUSTOMER', 'OWNER'];
 
+    public function __construct(private readonly OwnerProfileService $ownerProfiles) {}
+
     public function redirect(Request $request, string $provider): RedirectResponse
     {
         $this->ensureSupported($provider);
         $this->ensureConfigured($provider);
 
         $role = $this->requestedRole($request);
+
+        if ($provider === 'google' && ! app()->environment('testing')) {
+            $state = Str::random(64);
+            Cache::put($this->stateCacheKey($provider, $state), $role, now()->addMinutes(10));
+
+            return Socialite::driver($provider)
+                ->stateless()
+                ->with(['state' => $state])
+                ->redirect();
+        }
+
         $request->session()->put($this->roleSessionKey($provider), $role);
 
         return Socialite::driver($provider)->redirect();
@@ -35,14 +51,32 @@ class SocialAuthController extends Controller
     public function callback(Request $request, string $provider): RedirectResponse
     {
         $this->ensureSupported($provider);
-        $role = $request->session()->pull($this->roleSessionKey($provider), 'CUSTOMER');
+        if ($provider === 'google' && ! app()->environment('testing')) {
+            $state = (string) $request->query('state');
+            $role = $state !== ''
+                ? Cache::pull($this->stateCacheKey($provider, $state))
+                : null;
+
+            if (! $role) {
+                throw new InvalidStateException;
+            }
+        } else {
+            $role = $request->session()->pull($this->roleSessionKey($provider), 'CUSTOMER');
+        }
 
         try {
-            $socialUser = Socialite::driver($provider)->user();
+            $driver = Socialite::driver($provider);
+            $socialUser = $provider === 'google' && ! app()->environment('testing')
+                ? $driver->stateless()->user()
+                : $driver->user();
             $user = $this->resolveUser($provider, $socialUser, $role);
             abort_if(! $user->is_active, 403, '비활성화된 계정입니다.');
 
+            $user = $this->normalizeLegacyOwnerRole($user, $role);
             $this->ensureMatchingRole($user, $role);
+            if ($role === 'OWNER') {
+                $this->ensureOwnerStore($user);
+            }
 
             $user->forceFill(['last_login_at' => now()])->save();
             $code = Str::random(64);
@@ -66,7 +100,10 @@ class SocialAuthController extends Controller
 
     public function exchange(Request $request): JsonResponse
     {
-        $validated = $request->validate(['code' => ['required', 'string', 'size:64']]);
+        $validated = $request->validate([
+            'code' => ['required', 'string', 'size:64'],
+            'role' => ['sometimes', 'string', 'in:customer,owner,CUSTOMER,OWNER'],
+        ]);
         $userId = Cache::pull($this->cacheKey($validated['code']));
 
         if (! $userId || ! $user = User::find($userId)) {
@@ -75,12 +112,27 @@ class SocialAuthController extends Controller
         if (! $user->is_active) {
             return response()->json(['message' => '비활성화된 계정입니다.'], 403);
         }
+        if (strtoupper((string) $user->role) === 'OWNER') {
+            $user = $this->normalizeLegacyOwnerRole($user, 'OWNER');
+        }
+        if (isset($validated['role'])) {
+            $this->ensureMatchingRole($user, strtoupper($validated['role']));
+        }
+        if (strtoupper((string) $user->role) === 'ADMIN') {
+            $this->ensureOwnerStore($user);
+        }
 
-        return response()->json([
+        $response = [
             'token' => $user->createToken('social-login')->plainTextToken,
             'token_type' => 'Bearer',
             'user' => $user,
-        ]);
+        ];
+
+        if (strtoupper((string) $user->role) === 'ADMIN') {
+            $response = array_merge($response, $this->ownerProfiles->payload($user));
+        }
+
+        return response()->json($response);
     }
 
     private function resolveUser(string $provider, SocialiteUser $socialUser, string $role): User
@@ -100,6 +152,7 @@ class SocialAuthController extends Controller
             $user = $providerEmail ? User::where('email', $providerEmail)->first() : null;
 
             if ($user) {
+                $user = $this->normalizeLegacyOwnerRole($user, $role);
                 $this->ensureMatchingRole($user, $role);
             }
 
@@ -109,7 +162,7 @@ class SocialAuthController extends Controller
                     'email' => $providerEmail ?: "{$provider}.{$providerId}@social.cafeon.local",
                     'password' => Str::random(64),
                     'profile_image_url' => $socialUser->getAvatar(),
-                    'role' => $role,
+                    'role' => $this->accountRole($role),
                     'is_active' => true,
                     'email_verified_at' => $providerEmail ? now() : null,
                 ]);
@@ -149,8 +202,9 @@ class SocialAuthController extends Controller
 
     private function ensureMatchingRole(User $user, string $role): void
     {
+        $expectedRole = $this->accountRole($role);
         abort_if(
-            $user->role !== $role,
+            strtoupper((string) $user->role) !== $expectedRole,
             403,
             $role === 'OWNER'
                 ? '손님 계정은 사장님 로그인으로 사용할 수 없습니다.'
@@ -176,6 +230,11 @@ class SocialAuthController extends Controller
         return "social-login.{$provider}.role";
     }
 
+    private function stateCacheKey(string $provider, string $state): string
+    {
+        return 'social-login-state:'.$provider.':'.hash('sha256', $state);
+    }
+
     private function callbackUrl(string $role, array $parameters): string
     {
         $url = config('services.social_login.frontend_callbacks.'.strtolower($role))
@@ -183,5 +242,57 @@ class SocialAuthController extends Controller
         $separator = str_contains($url, '?') ? '&' : '?';
 
         return $url.$separator.http_build_query($parameters);
+    }
+
+    private function accountRole(string $loginRole): string
+    {
+        return strtoupper($loginRole) === 'OWNER' ? 'ADMIN' : 'CUSTOMER';
+    }
+
+    private function normalizeLegacyOwnerRole(User $user, string $loginRole): User
+    {
+        if ($loginRole === 'OWNER' && strtoupper((string) $user->role) === 'OWNER') {
+            $user->forceFill(['role' => 'ADMIN'])->save();
+        }
+
+        return $user;
+    }
+
+    private function ensureOwnerStore(User $user): void
+    {
+        if ($user->storeMemberships()->where('role', 'OWNER')->where('is_active', true)->exists()) {
+            return;
+        }
+
+        DB::transaction(function () use ($user): void {
+            if ($user->storeMemberships()->where('role', 'OWNER')->where('is_active', true)->lockForUpdate()->exists()) {
+                return;
+            }
+
+            $storeName = trim($user->name).'님의 카페';
+            $store = Store::create([
+                'name' => $storeName,
+                'slug' => $this->uniqueStoreSlug($storeName),
+                'reservation_enabled' => true,
+                'is_active' => true,
+            ]);
+            $store->members()->create([
+                'user_id' => $user->id,
+                'role' => 'OWNER',
+                'is_active' => true,
+            ]);
+        });
+    }
+
+    private function uniqueStoreSlug(string $storeName): string
+    {
+        $base = Str::slug($storeName) ?: 'social-owner-store';
+        $slug = $base;
+
+        while (Store::withTrashed()->where('slug', $slug)->exists()) {
+            $slug = $base.'-'.Str::lower(Str::random(6));
+        }
+
+        return $slug;
     }
 }

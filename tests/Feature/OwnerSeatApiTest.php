@@ -46,6 +46,41 @@ class OwnerSeatApiTest extends TestCase
             ->assertJsonPath('availability.available_capacity', 0);
     }
 
+    public function test_owner_can_reset_seat_configuration(): void
+    {
+        [$owner, $store, $seats] = $this->fixture();
+        $seats[0]->update(['status' => 'UNAVAILABLE']);
+        Sanctum::actingAs($owner);
+
+        $this->postJson('/api/owner/seats/reset', ['total_seats' => 4])
+            ->assertOk()
+            ->assertJsonPath('message', '좌석 설정이 초기화되었습니다.')
+            ->assertJsonCount(4, 'seats')
+            ->assertJsonPath('seats.0.seat_code', '1')
+            ->assertJsonPath('seats.3.seat_code', '4')
+            ->assertJsonPath('availability.total_seat_units', 4)
+            ->assertJsonPath('availability.available_capacity', 4);
+
+        $this->assertDatabaseCount('store_seats', 4);
+        $this->assertSame(['AVAILABLE'], $store->seats()->pluck('status')->unique()->values()->all());
+    }
+
+    public function test_reset_removes_extra_active_seats_without_breaking_unique_codes(): void
+    {
+        [$owner, $store] = $this->fixture();
+        Sanctum::actingAs($owner);
+
+        $this->postJson('/api/owner/seats/reset', ['count' => 1])
+            ->assertOk()
+            ->assertJsonCount(1, 'seats')
+            ->assertJsonPath('seats.0.seat_code', '1');
+
+        $this->postJson('/api/owner/seats/reset', ['seat_count' => 3])
+            ->assertOk()
+            ->assertJsonCount(3, 'seats')
+            ->assertJsonPath('seats.2.seat_code', '3');
+    }
+
     public function test_unrelated_user_cannot_update_seats(): void
     {
         [, $store, $seats] = $this->fixture();

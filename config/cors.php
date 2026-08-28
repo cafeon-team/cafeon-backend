@@ -1,8 +1,8 @@
 <?php
 
 $frontendOrigins = array_values(array_filter(array_map(
-    'trim',
-    explode(',', (string) env('FRONTEND_ORIGINS', ''))
+    static fn (string $origin): string => rtrim(trim($origin), '/'),
+    explode(',', (string) env('FRONTEND_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000')),
 )));
 
 return [

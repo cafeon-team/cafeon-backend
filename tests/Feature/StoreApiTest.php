@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Store;
 use App\Models\StoreSeat;
+use App\Models\Menu;
+use App\Models\MenuCategory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -35,5 +37,23 @@ class StoreApiTest extends TestCase
             ->assertJsonPath('available_capacity', 4)
             ->assertJsonPath('occupancy_rate', 50)
             ->assertJsonPath('congestion', 'NORMAL');
+    }
+
+    public function test_store_detail_includes_sold_out_menus(): void
+    {
+        $store = Store::create(['name' => '메뉴 테스트', 'slug' => 'menu-detail', 'address' => '서울', 'is_active' => true]);
+        $category = MenuCategory::create(['store_id' => $store->id, 'name' => '주스']);
+        $menu = Menu::create([
+            'store_id' => $store->id,
+            'category_id' => $category->id,
+            'name' => '수박주스',
+            'price' => 6300,
+            'is_available' => false,
+        ]);
+
+        $this->getJson("/api/stores/{$store->id}")
+            ->assertOk()
+            ->assertJsonPath('store.menu_categories.0.menus.0.id', $menu->id)
+            ->assertJsonPath('store.menu_categories.0.menus.0.is_available', false);
     }
 }

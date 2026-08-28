@@ -36,13 +36,16 @@ class BlogOperationsApiTest extends TestCase
 
     public function test_authenticated_user_can_upload_blog_image(): void
     {
+        config(['filesystems.upload_disk' => 'public']);
         Storage::fake('public');
         Sanctum::actingAs(User::factory()->create());
 
         $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=');
         $response = $this->postJson('/api/uploads/images', [
             'image' => UploadedFile::fake()->createWithContent('cake.png', $png),
-        ])->assertCreated()->assertJsonStructure(['path', 'url']);
+        ])->assertCreated()
+            ->assertJsonStructure(['path', 'url', 'image_url'])
+            ->assertJsonPath('image_url', fn ($url) => is_string($url) && str_contains($url, '/blog/'));
 
         Storage::disk('public')->assertExists($response->json('path'));
     }
@@ -51,15 +54,18 @@ class BlogOperationsApiTest extends TestCase
     {
         Storage::fake('public');
         Storage::disk('public')->put('blog/remove.png', 'image');
+        Storage::disk('public')->put('blog/remove-upload.png', 'image');
         Storage::disk('public')->put('other/keep.png', 'image');
 
         app(ImageStorageService::class)->deleteLocalUrls([
             'http://127.0.0.1:8000/storage/blog/remove.png',
+            'http://127.0.0.1:8000/uploads/blog/remove-upload.png',
             'http://example.com/image.png',
             'http://127.0.0.1:8000/storage/other/keep.png',
         ]);
 
         Storage::disk('public')->assertMissing('blog/remove.png');
+        Storage::disk('public')->assertMissing('blog/remove-upload.png');
         Storage::disk('public')->assertExists('other/keep.png');
     }
 }

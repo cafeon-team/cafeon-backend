@@ -45,7 +45,24 @@ class SocialAuthApiTest extends TestCase
         parse_str(parse_url($callback->headers->get('Location'), PHP_URL_QUERY), $query);
 
         $this->assertSame('owner', $query['role']);
-        $this->assertDatabaseHas('users', ['email' => 'owner-social@example.com', 'role' => 'OWNER']);
+        $this->assertDatabaseHas('users', ['email' => 'owner-social@example.com', 'role' => 'ADMIN']);
+
+        $exchange = $this->postJson('/api/auth/social/exchange', [
+            'code' => $query['code'],
+            'role' => 'owner',
+        ])->assertOk()
+            ->assertJsonPath('user.role', 'ADMIN')
+            ->assertJsonPath('membership.role', 'OWNER')
+            ->assertJsonStructure(['token', 'store_id', 'store', 'stores', 'memberships']);
+
+        $this->assertNotNull($exchange->json('store_id'));
+        $this->assertDatabaseHas('stores', ['id' => $exchange->json('store_id')]);
+        $this->assertDatabaseHas('store_members', [
+            'store_id' => $exchange->json('store_id'),
+            'user_id' => $exchange->json('user.id'),
+            'role' => 'OWNER',
+            'is_active' => true,
+        ]);
     }
 
     public function test_social_login_rejects_unknown_role(): void
@@ -98,6 +115,35 @@ class SocialAuthApiTest extends TestCase
             'provider' => 'google',
             'provider_user_id' => 'new-provider-id',
         ]);
+    }
+
+    public function test_legacy_social_owner_role_is_migrated_and_receives_store_id(): void
+    {
+        config(['services.google.client_id' => 'configured']);
+        $legacyOwner = User::factory()->create(['email' => 'legacy-owner@example.com', 'role' => 'OWNER']);
+        $legacyOwner->socialAccounts()->create([
+            'provider' => 'google',
+            'provider_user_id' => 'legacy-owner-google',
+            'provider_email' => $legacyOwner->email,
+        ]);
+
+        $this->get('/auth/social/google/redirect?role=owner')->assertRedirect();
+        Socialite::fake('google', (new SocialiteUser)->map([
+            'id' => 'legacy-owner-google',
+            'name' => 'Legacy Owner',
+            'email' => $legacyOwner->email,
+        ]));
+
+        $callback = $this->get('/auth/social/google/callback')->assertRedirect();
+        parse_str(parse_url($callback->headers->get('Location'), PHP_URL_QUERY), $query);
+
+        $this->postJson('/api/auth/social/exchange', ['code' => $query['code']])
+            ->assertOk()
+            ->assertJsonPath('user.role', 'ADMIN')
+            ->assertJsonPath('membership.role', 'OWNER')
+            ->assertJsonPath('store_id', fn ($value) => is_int($value));
+
+        $this->assertDatabaseHas('users', ['id' => $legacyOwner->id, 'role' => 'ADMIN']);
     }
 
     public function test_naver_redirect_reports_missing_credentials_until_keys_are_added(): void

@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\OwnerReservationController;
 use App\Http\Controllers\Api\OwnerSalesController;
 use App\Http\Controllers\Api\OwnerSeatController;
 use App\Http\Controllers\Api\OwnerStaffController;
+use App\Http\Controllers\Api\OwnerStoreController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PlanController;
 use App\Http\Controllers\Api\PostApiController;
@@ -33,21 +34,33 @@ use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Api\WaitlistController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/', function () {
+    return response()->json([
+        'service' => 'CafeON Backend API',
+        'status' => 'ok',
+        'swagger_url' => url('/swagger'),
+    ]);
+});
+
 // API 명세서 기준 인증 경로
-Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+// 이메일+IP 단위 10회, IP 전체 50회 제한으로 정상 사용자와 무차별 대입 공격을 구분한다.
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:login');
+Route::post('/auth/customer/login', [AuthController::class, 'loginCustomer'])->middleware('throttle:login');
+Route::post('/auth/owner/login', [AuthController::class, 'loginOwner'])->middleware('throttle:login');
 Route::post('/auth/signup', [AuthController::class, 'register']);
 Route::post('/auth/owner/signup', [AuthController::class, 'registerOwner'])
     ->middleware('throttle:10,1');
-Route::post('/auth/social/exchange', [SocialAuthController::class, 'exchange'])
-    ->middleware('throttle:10,1');
+Route::post('/auth/social/exchange', [SocialAuthController::class, 'exchange']);
 Route::post('/webhooks/toss-payments', [PaymentController::class, 'webhook'])
     ->middleware('throttle:120,1');
 
 // 기존 프론트엔드 호환용 경로(추후 제거 가능)
-Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::get('/map/stores', [MapStoreController::class, 'index']);
+Route::get('/map/kakao-cafes', [MapStoreController::class, 'kakaoCafes'])->middleware('throttle:60,1');
+Route::get('/map/pins/{source}/{id}', [MapStoreController::class, 'showPin'])->where('source', 'CAFEON|KAKAO');
 Route::get('/directions', [DirectionController::class, 'show'])->middleware('throttle:30,1');
 Route::get('/stores', [StoreController::class, 'index']);
 Route::get('/stores/{store}', [StoreController::class, 'show']);
@@ -98,7 +111,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/posts', [PostApiController::class, 'store']);
     Route::put('/posts/{post}', [PostApiController::class, 'update']);
     Route::delete('/posts/{post}', [PostApiController::class, 'destroy']);
-    Route::put('/users/me', [ProfileController::class, 'update']);
+    Route::match(['put', 'patch'], '/users/me', [ProfileController::class, 'update']);
+    Route::post('/users/me/profile-image', [ProfileController::class, 'update']);
     Route::put('/users/me/password', [ProfileController::class, 'updatePassword']);
     Route::get('/users/me/coupons', [BenefitController::class, 'coupons']);
     Route::get('/users/me/membership', [BenefitController::class, 'membership']);
@@ -116,6 +130,25 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/me/orders/{order}', [OrderController::class, 'show']);
     Route::post('/users/me/orders/{order}/cancel', [OrderController::class, 'cancel']);
     Route::get('/users/me', [AuthController::class, 'me']);
+    Route::get('/owner/profile', [ProfileController::class, 'owner']);
+    Route::match(['put', 'patch'], '/owner/profile', [ProfileController::class, 'updateOwner']);
+    Route::get('/owner/stores', [ProfileController::class, 'ownerStores']);
+    Route::get('/owner/store', [OwnerStoreController::class, 'showMine']);
+    Route::patch('/owner/store', [OwnerStoreController::class, 'updateMine']);
+    Route::patch('/owner/store/business-status', [OwnerStoreController::class, 'updateMineBusinessStatus']);
+    Route::patch('/owner/store/location', [OwnerStoreController::class, 'updateMineLocation']);
+    Route::get('/owner/dashboard', [OwnerDashboardController::class, 'showMine']);
+    Route::get('/owner/reservations', [OwnerReservationController::class, 'indexMine']);
+    Route::patch('/owner/reservations/{reservation}/status', [OwnerReservationController::class, 'updateStatus']);
+    Route::get('/owner/menus', [OwnerMenuController::class, 'indexMine']);
+    Route::post('/owner/menus', [OwnerMenuController::class, 'storeMine']);
+    Route::post('/owner/menu-categories', [OwnerMenuController::class, 'storeMineCategory']);
+    Route::get('/owner/seats', [OwnerSeatController::class, 'indexMine']);
+    Route::post('/owner/seats', [OwnerSeatController::class, 'storeMine']);
+    Route::post('/owner/seats/reset', [OwnerSeatController::class, 'resetMine']);
+    Route::patch('/owner/seats/availability', [OwnerSeatController::class, 'updateManyMine']);
+    Route::patch('/owner/seats/{seat}', [OwnerSeatController::class, 'updateMine']);
+    Route::delete('/owner/seats/{seat}', [OwnerSeatController::class, 'destroyMine']);
     Route::get('/users/me/reservations', [ReservationController::class, 'mine']);
     Route::get('/users/me/reservations/{reservation}', [ReservationController::class, 'showMine']);
     Route::delete('/users/me/reservations/{reservation}', [ReservationController::class, 'cancelMine']);
@@ -137,8 +170,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/posts/{post}/likes', [PostLikeController::class, 'store']);
     Route::delete('/posts/{post}/likes', [PostLikeController::class, 'destroy']);
     Route::get('/owner/stores/{store}/dashboard', [OwnerDashboardController::class, 'show']);
+    Route::get('/owner/stores/{store}', [OwnerStoreController::class, 'show']);
+    Route::patch('/owner/stores/{store}', [OwnerStoreController::class, 'update']);
+    Route::delete('/owner/stores/{store}', [OwnerStoreController::class, 'destroy']);
+    Route::patch('/owner/stores/{store}/business-status', [OwnerStoreController::class, 'updateBusinessStatus']);
     Route::get('/owner/stores/{store}/menus', [OwnerMenuController::class, 'index']);
     Route::get('/owner/stores/{store}/orders', [OwnerOrderController::class, 'index']);
+    Route::post('/owner/orders/{order}/cancel', [OwnerOrderController::class, 'cancel']);
     Route::patch('/owner/orders/{order}/status', [OwnerOrderController::class, 'updateStatus']);
     Route::get('/owner/stores/{store}/inventory', [OwnerInventoryController::class, 'index']);
     Route::post('/owner/stores/{store}/inventory', [OwnerInventoryController::class, 'store']);
@@ -159,6 +197,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/owner/menus/{menu}/availability', [OwnerMenuController::class, 'updateAvailability']);
     Route::delete('/owner/menus/{menu}', [OwnerMenuController::class, 'destroy']);
     Route::patch('/owner/stores/{store}/seats/{seat}', [OwnerSeatController::class, 'update']);
+    Route::get('/owner/stores/{store}/seats', [OwnerSeatController::class, 'index']);
+    Route::post('/owner/stores/{store}/seats', [OwnerSeatController::class, 'store']);
+    Route::post('/owner/stores/{store}/seats/reset', [OwnerSeatController::class, 'reset']);
+    Route::delete('/owner/stores/{store}/seats/{seat}', [OwnerSeatController::class, 'destroy']);
     Route::patch('/owner/stores/{store}/availability', [OwnerSeatController::class, 'updateMany']);
     Route::post('/stores/{store}/waitlists', [WaitlistController::class, 'store']);
     Route::get('/users/me/waitlists', [WaitlistController::class, 'mine']);

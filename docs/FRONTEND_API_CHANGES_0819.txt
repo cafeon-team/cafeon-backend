@@ -1,0 +1,318 @@
+CafeOn 프론트엔드 전달용 백엔드 변경사항 (2026-08-19)
+========================================================
+
+1. 손님 생년월일 서버 저장
+--------------------------
+API: PUT /api/users/me
+
+요청:
+{
+  "birth_date": "1995-03-21"
+}
+
+- 형식: YYYY-MM-DD
+- 미래 날짜는 422 오류
+- 저장 후 로그인 응답 및 GET /api/users/me의 user.birth_date에서 조회 가능
+- 프론트는 로컬 저장값보다 서버의 user.birth_date를 우선 사용
+
+
+2. 사장님 매장 프로필 조회/수정/삭제
+-----------------------------------
+조회: GET /api/owner/stores/{storeId}
+수정: PATCH /api/owner/stores/{storeId}
+삭제: DELETE /api/owner/stores/{storeId}
+
+- Authorization: Bearer {ownerToken} 필수
+- 로그인한 사장님이 실제 OWNER로 연결된 자신의 매장만 접근 가능
+- 삭제는 복구 가능한 소프트 삭제
+
+
+3. 매장 프로필 수정 요청
+------------------------
+API: PATCH /api/owner/stores/{storeId}
+
+요청 예시:
+{
+  "name": "카페온 강남점",
+  "description": "스페셜티 커피 전문점",
+  "address": "서울특별시 강남구",
+  "detail_address": "1층",
+  "phone": "02-1234-5678",
+  "thumbnail_url": "https://example.com/store.jpg",
+  "business_info": {
+    "business_registration_number": "123-45-67890",
+    "representative_name": "홍길동",
+    "company_name": "카페온",
+    "business_type": "음식점업",
+    "business_item": "커피 전문점",
+    "business_address": "서울특별시 강남구"
+  },
+  "business_hours": [
+    {
+      "day_of_week": 1,
+      "opening_time": "09:00",
+      "closing_time": "22:00",
+      "is_closed": false
+    },
+    {
+      "day_of_week": 2,
+      "opening_time": null,
+      "closing_time": null,
+      "is_closed": true
+    }
+  ],
+  "tags": [
+    {"name": "와이파이", "slug": "wifi"},
+    {"name": "주차", "slug": "parking"}
+  ]
+}
+
+요일 값:
+0=일요일, 1=월요일, 2=화요일, 3=수요일,
+4=목요일, 5=금요일, 6=토요일
+
+주의:
+- 영업일은 opening_time과 closing_time 필수
+- 시간 형식은 HH:mm
+- 휴무일은 is_closed=true, 시간은 null
+- tags를 보내면 해당 매장의 태그 목록 전체가 전송값으로 동기화됨
+- 사업자 정보는 공개 매장 API에 노출되지 않음
+
+
+4. 매장 영업 중/마감
+---------------------
+API: PATCH /api/owner/stores/{storeId}/business-status
+
+요청:
+{
+  "is_open": true
+}
+
+- is_active가 아니라 is_open 사용
+- store.is_active: 매장 게시/활성 여부
+- store.is_open: 현재 영업 중 여부
+
+
+5. 사장님 좌석 관리
+-------------------
+목록: GET /api/owner/stores/{storeId}/seats
+생성: POST /api/owner/stores/{storeId}/seats
+수정: PATCH /api/owner/stores/{storeId}/seats/{seatId}
+삭제: DELETE /api/owner/stores/{storeId}/seats/{seatId}
+
+좌석 상태:
+AVAILABLE | UNAVAILABLE | MAINTENANCE
+
+좌석 유형:
+WINDOW | NORMAL | GROUP | OUTDOOR
+
+
+6. 대시보드 매출 그래프
+-----------------------
+API: GET /api/owner/stores/{storeId}/dashboard
+
+- sales: 오늘 09시부터 현재 시각까지 시간별 누적 매출
+- 그래프 X축은 sales_meta.hours 사용
+- sales_meta.aggregation 값은 cumulative
+
+
+7. 이미지 업로드
+----------------
+API: POST /api/uploads/images
+
+응답:
+{
+  "path": "blog/example.jpg",
+  "url": "http://.../storage/blog/example.jpg"
+}
+
+- 프론트에서는 url 필드를 사용
+
+
+8. 포인트/쿠폰 사용
+-------------------
+별도 사용 API가 아니라 주문 생성 시 함께 전송
+
+API: POST /api/orders
+
+{
+  "store_id": 1,
+  "point_used": 500,
+  "user_coupon_id": 1,
+  "items": [
+    {"menu_id": 1, "quantity": 1}
+  ]
+}
+
+
+Swagger
+-------
+http://127.0.0.1:8000/api/documentation
+
+
+9. 카카오지도 주변 카페 전체 조회
+---------------------------------
+API: GET /api/map/kakao-cafes
+
+요청 예시:
+/api/map/kakao-cafes
+  ?sw_lat=37.4
+  &sw_lng=126.9
+  &ne_lat=37.6
+  &ne_lng=127.2
+  &page=1
+  &size=15
+
+파라미터:
+- sw_lat/sw_lng: 지도 남서쪽 위도/경도
+- ne_lat/ne_lng: 지도 북동쪽 위도/경도
+- page: 1~45, 기본 1
+- size: 1~15, 기본 15
+
+응답:
+{
+  "data": [
+    {
+      "source": "KAKAO",
+      "kakao_place_id": "12345",
+      "name": "카페 이름",
+      "latitude": 37.4979,
+      "longitude": 127.0276,
+      "address": "서울 강남구",
+      "road_address": "서울 강남구 테헤란로",
+      "phone": "02-1234-5678",
+      "place_url": "https://place.map.kakao.com/12345",
+      "category_name": "음식점 > 카페",
+      "distance": null
+    }
+  ],
+  "meta": {
+    "source": "KAKAO",
+    "category_group_code": "CE7",
+    "page": 1,
+    "size": 15,
+    "count": 1,
+    "total_count": 1,
+    "pageable_count": 1,
+    "is_end": true
+  }
+}
+
+프론트 처리:
+- 지도 이동/확대 종료 시 현재 bounds로 API 호출
+- data의 latitude/longitude로 마커 표시
+- source=KAKAO 마커와 CafeOn 등록 매장 마커를 시각적으로 구분
+- kakao_place_id를 React key 및 중복 제거 키로 사용
+- meta.is_end=false이면 다음 page 요청 가능
+- 422: 지도 범위 또는 page/size 오류
+- 502: 카카오 API 일시 장애
+- 503: 서버의 카카오 REST API 키 미설정
+
+주의:
+- 프론트에 카카오 REST API 키를 포함하지 않음
+- 이 API는 카카오 CE7(카페) 결과만 반환함
+- CafeOn 등록 매장은 기존 GET /api/map/stores로 별도 조회
+
+백엔드 검증 결과
+-----------------
+- 전체 자동화 테스트: 152개 통과
+- Assertions: 743개 통과
+- Swagger: 115개 API path 생성
+
+
+10. 사장님 프로필 로그아웃 후 복원
+------------------------------------
+개인 프로필 조회: GET /api/owner/profile
+개인 프로필 저장: PATCH /api/owner/profile 또는 PUT /api/owner/profile
+내 매장 목록 조회: GET /api/owner/stores
+대표 매장 조회: GET /api/owner/store
+대표 매장 저장: PATCH /api/owner/store
+
+요청 예시:
+{
+  "name": "김사장",
+  "email": "owner@example.com",
+  "phone": "010-1234-5678",
+  "profile_image_url": "https://example.com/owner.jpg",
+  "birth_date": "1988-05-12"
+}
+
+- 모든 값은 users 테이블에 저장되므로 로그아웃해도 삭제되지 않음
+- 사장님 로그인 POST /api/auth/owner/login 응답에 user뿐 아니라 아래 필드도 반환
+  store_id, store, membership, stores, memberships
+- GET /api/users/me도 사장님 계정이면 동일한 매장 연결 정보를 반환
+- 알림/선호 태그 설정을 저장한 경우 preferences도 로그인 응답에 반환
+- store는 첫 번째 소유 매장, stores는 소유 매장 전체 목록
+- 매장명/설명/주소/전화/영업시간/사업자정보/태그는 기존
+  PATCH /api/owner/stores/{storeId}로 저장
+
+프론트 수정사항:
+1. 로그아웃 시 토큰과 화면 캐시는 지워도 되지만 프로필 저장 API 호출 결과를 로컬 전용 값으로만 관리하지 말 것
+2. 재로그인 성공 시 응답의 user와 store를 전역 상태에 다시 넣을 것
+3. 페이지 새로고침 시 GET /api/owner/profile 또는 GET /api/users/me로 서버 값을 복원할 것
+4. store.id를 로컬에 영구 저장하지 않아도 로그인 응답의 store.id를 사용 가능
+5. ownerStoreId가 아직 없으면 PATCH /api/owner/store로 저장 가능
+
+소셜 사장님 로그인:
+- 소셜 로그인 교환 POST /api/auth/social/exchange도 동일한 store_id/store 응답 반환
+- 사장님 계정 역할은 일반 로그인과 동일하게 users.role=ADMIN으로 통일
+- 최초 소셜 사장님 계정에는 기본 매장과 store_members.OWNER 연결이 자동 생성됨
+- 기본 매장명은 "{사용자명}님의 카페"이며 프로필 화면에서 실제 매장명으로 수정
+- 프론트는 일반/소셜 로그인 모두 res.store_id 또는 res.store.id를 ownerStoreId로 저장
+
+권장 저장 경로:
+- ownerStoreId 있음: PATCH /api/owner/stores/{ownerStoreId}
+- ownerStoreId 없음: PATCH /api/owner/store
+- 두 경로의 요청 필드와 응답 store 구조는 동일
+
+모바일 매장 프로필 화면 호환:
+- business_hours 또는 hours에 "12-12" 같은 문자열을 보내도 business_hours_text에 저장
+- business_info 또는 businessInfo에 "12" 같은 문자열을 보내면 사업자번호로 저장
+- tags는 [{"name":"커피","slug":"coffee"}] 객체 배열과 ["커피","음료"] 문자열 배열 모두 허용
+- 응답에는 business_hours_text, hours, business_info, business_info_text, tags, tag_names가 포함됨
+
+
+11. 사장님 운영정보 재로그인 복원
+----------------------------------
+모든 경로는 Authorization: Bearer {ownerToken} 필수이며 로그인한 계정의 활성 OWNER 매장을 자동 선택합니다.
+
+1) 매장 운영상태
+- 조회: GET /api/owner/store 또는 GET /api/owner/dashboard
+- 저장: PATCH /api/owner/store/business-status
+- 요청: {"is_open": true}
+- 호환 요청: {"is_active": true} 또는 {"status":"운영중"}
+- DB: stores.is_open
+
+2) 예약내역/수락대기
+- 전체/필터 조회: GET /api/owner/reservations?status=PENDING_APPROVAL
+- 승인/거절: PATCH /api/owner/reservations/{reservationId}/status
+- 승인 요청: {"status":"CONFIRMED"}
+- ACCEPTED/APPROVED/수락/승인도 CONFIRMED로 변환
+- DB: reservations.status 및 승인 시각/승인자
+
+3) 본인 가게 메뉴
+- 목록: GET /api/owner/menus
+- 생성: POST /api/owner/menus
+- 카테고리 생성: POST /api/owner/menu-categories
+- 메뉴 생성 시 category_id 대신 category:"커피"를 보내면 해당 매장의 카테고리를 찾아 연결
+- 기존 수정/품절/삭제: PUT|PATCH|DELETE /api/owner/menus/{menuId} 계열
+- DB: menu_categories, menus
+
+4) 매장 좌석현황
+- 목록: GET /api/owner/seats
+- 생성: POST /api/owner/seats
+- 상태 변경: PATCH /api/owner/seats/{seatId}
+- 일괄 상태 변경: PATCH /api/owner/seats/availability
+- 삭제: DELETE /api/owner/seats/{seatId}
+- 상태: AVAILABLE(비어있음), UNAVAILABLE(사용중), MAINTENANCE(대기/점검)
+- 비어있음/EMPTY, 사용중/OCCUPIED, 대기/WAITING 문자열도 위 상태로 자동 변환
+- DB: store_seats
+
+대시보드 통합 조회:
+- GET /api/owner/dashboard
+- summary에 is_open, today_sales, seat_count, seat_capacity, reservation_count, pending_reservation_count 반환
+- menuItems, reservations, pendingReservations도 함께 반환
+
+보안:
+- users.role=ADMIN만으로 다른 매장에 접근할 수 없음
+- store_members에 활성 OWNER 또는 MANAGER 연결이 있는 본인 매장만 관리 가능

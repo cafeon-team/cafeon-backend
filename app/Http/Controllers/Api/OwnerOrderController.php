@@ -7,6 +7,7 @@ use App\Models\CustomerVisit;
 use App\Models\Order;
 use App\Models\Store;
 use App\Models\UserNotification;
+use App\Services\TossPaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +38,7 @@ class OwnerOrderController extends Controller
         ]);
 
         $orders = Order::query()
-            ->with(['user:id,name,email,phone', 'items.menu:id,name,image_url', 'payment'])
+            ->with(['user:id,name,email,phone,profile_image_url,profile_thumbnail_url', 'items.menu:id,name,image_url', 'payment'])
             ->where('store_id', $store->id)
             ->when($validated['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->when($validated['date'] ?? null, fn ($query, $date) => $query->whereDate('created_at', $date))
@@ -47,6 +48,12 @@ class OwnerOrderController extends Controller
             }))
             ->latest()
             ->paginate($validated['per_page'] ?? 30);
+
+        $orders->getCollection()->each(function (Order $order) {
+            $displayUrl = $order->user?->profile_thumbnail_url ?? $order->user?->profile_image_url;
+            $order->setAttribute('profile_image_url', $displayUrl);
+            $order->user?->setAttribute('profile_image_url', $displayUrl);
+        });
 
         return response()->json($orders);
     }
@@ -106,12 +113,59 @@ class OwnerOrderController extends Controller
                 );
             }
 
-            return $locked->fresh()->load(['user:id,name,email,phone', 'items.menu:id,name,image_url', 'payment']);
+            $updated = $locked->fresh()->load(['user:id,name,email,phone,profile_image_url,profile_thumbnail_url', 'items.menu:id,name,image_url', 'payment']);
+            $displayUrl = $updated->user?->profile_thumbnail_url ?? $updated->user?->profile_image_url;
+            $updated->setAttribute('profile_image_url', $displayUrl);
+            $updated->user?->setAttribute('profile_image_url', $displayUrl);
+
+            return $updated;
         });
 
         return response()->json([
             'message' => '주문 상태가 변경되었습니다.',
             'order' => $order,
+        ]);
+    }
+
+    public function cancel(Request $request, Order $order, TossPaymentService $payments): JsonResponse
+    {
+        $order->loadMissing('store');
+        $this->authorizeStore($request, $order->store);
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:200'],
+        ]);
+
+        $result = $payments->refundForOwner(
+            $order,
+            $validated['reason'] ?? '매장 사정으로 주문이 거절되었습니다.'
+        );
+
+        if ($result['status'] >= 400) {
+            return response()->json($result['body'], $result['status']);
+        }
+
+        $cancelledOrder = $result['body']['order'];
+        $preference = $cancelledOrder->user->preference;
+        if (! $preference || $preference->order_notifications) {
+            UserNotification::firstOrCreate(
+                [
+                    'user_id' => $cancelledOrder->user_id,
+                    'type' => 'ORDER_STATUS',
+                    'data->order_id' => $cancelledOrder->id,
+                    'data->status' => 'REFUNDED',
+                ],
+                [
+                    'title' => '주문이 거절되었습니다.',
+                    'message' => "주문 {$cancelledOrder->order_number}이(가) 매장에서 거절되어 결제가 전액 환불되었습니다.",
+                    'data' => ['order_id' => $cancelledOrder->id, 'status' => 'REFUNDED'],
+                ]
+            );
+        }
+
+        return response()->json([
+            'message' => '주문이 거절되고 결제가 전액 환불되었습니다.',
+            'order' => $cancelledOrder->fresh()->load(['user:id,name,email,phone,profile_image_url,profile_thumbnail_url', 'items.menu:id,name,image_url', 'payment']),
+            'idempotent' => $result['body']['idempotent'] ?? false,
         ]);
     }
 

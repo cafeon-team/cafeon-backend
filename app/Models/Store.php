@@ -13,9 +13,19 @@ class Store extends Model
 
     protected $guarded = [];
 
+    protected $hidden = ['business_info'];
+
     protected function casts(): array
     {
-        return ['reservation_enabled' => 'boolean', 'is_active' => 'boolean', 'latitude' => 'decimal:7', 'longitude' => 'decimal:7', 'availability_updated_at' => 'datetime'];
+        return [
+            'reservation_enabled' => 'boolean',
+            'is_active' => 'boolean',
+            'is_open' => 'boolean',
+            'business_info' => 'array',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
+            'availability_updated_at' => 'datetime',
+        ];
     }
 
     public function members(): HasMany

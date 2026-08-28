@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Store;
 use App\Models\User;
+use App\Services\OwnerProfileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,8 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function __construct(private readonly OwnerProfileService $ownerProfiles) {}
+
     public function registerOwner(Request $request): JsonResponse
     {
         $this->normalizeEmail($request);
@@ -36,7 +39,7 @@ class AuthController extends Controller
                 'email' => strtolower($validated['email']),
                 'password' => $validated['password'],
                 'phone' => $validated['phone'],
-                'role' => 'OWNER',
+                'role' => 'ADMIN',
                 'is_active' => true,
             ]);
 
@@ -64,6 +67,7 @@ class AuthController extends Controller
             'token' => $user->createToken('owner-frontend')->plainTextToken,
             'token_type' => 'Bearer',
             'user' => $user,
+            'store_id' => $store->id,
             'store' => $store,
             'membership' => $membership,
         ], 201);
@@ -103,6 +107,21 @@ class AuthController extends Controller
 
     public function login(Request $request): JsonResponse
     {
+        return $this->loginForRole($request, 'CUSTOMER');
+    }
+
+    public function loginCustomer(Request $request): JsonResponse
+    {
+        return $this->loginForRole($request, 'CUSTOMER');
+    }
+
+    public function loginOwner(Request $request): JsonResponse
+    {
+        return $this->loginForRole($request, 'ADMIN');
+    }
+
+    private function loginForRole(Request $request, string $expectedRole): JsonResponse
+    {
         $this->normalizeEmail($request);
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -121,18 +140,36 @@ class AuthController extends Controller
             return response()->json(['message' => 'This account is inactive.'], 403);
         }
 
+        if (strtoupper((string) $user->role) !== $expectedRole) {
+            $message = $expectedRole === 'ADMIN'
+                ? '손님 계정은 사장님 화면에서 로그인할 수 없습니다.'
+                : '사장님 계정은 손님 화면에서 로그인할 수 없습니다.';
+
+            return response()->json(['message' => $message], 403);
+        }
+
         $user->forceFill(['last_login_at' => now()])->save();
         $token = $user->createToken('frontend')->plainTextToken;
 
-        return response()->json([
+        $response = [
             'token' => $token,
             'token_type' => 'Bearer',
             'user' => $user,
-        ]);
+        ];
+
+        if ($expectedRole === 'ADMIN') {
+            $response = array_merge($response, $this->ownerContextWithoutUser($user));
+        }
+
+        return response()->json($response);
     }
 
     public function me(Request $request): JsonResponse
     {
+        if (strtoupper((string) $request->user()->role) === 'ADMIN') {
+            return response()->json($this->ownerProfiles->payload($request->user()));
+        }
+
         return response()->json(['user' => $request->user()]);
     }
 
@@ -160,5 +197,13 @@ class AuthController extends Controller
         if (is_string($request->input('email'))) {
             $request->merge(['email' => Str::lower(trim($request->input('email')))]);
         }
+    }
+
+    private function ownerContextWithoutUser(User $user): array
+    {
+        $payload = $this->ownerProfiles->payload($user);
+        unset($payload['user']);
+
+        return $payload;
     }
 }

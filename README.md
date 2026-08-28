@@ -25,6 +25,7 @@ CafeON 서비스의 서버(백엔드) 프로젝트입니다. 카페 정보, 메�
 - 쿠폰, 멤버십 및 추천인 혜택
 - 블로그 게시글, 댓글, 좋아요 및 분류 관리
 - 점주용 예약·대시보드 기능
+- SUPER_ADMIN 전용 운영 콘솔(사용자·매장·주문·예약·리뷰·문의·시스템 상태 관리)
 - 이미지 업로드 및 고객 문의 관리
 
 ## 설치 전에 준비할 프로그램
@@ -132,12 +133,29 @@ php artisan serve --port=8000
 브라우저에서 아래 주소로 접속합니다.
 
 - 기본 화면: <http://127.0.0.1:8000>
-- Swagger API 문서: <http://127.0.0.1:8000/api/documentation>
+- Swagger API 문서: <http://127.0.0.1:8000/swagger>
 - MVC 기능 확인 화면: <http://127.0.0.1:8000/test/mvc>
 - 블로그 API 확인 화면: <http://127.0.0.1:8000/test/mvc/blog-api>
 - 소셜 로그인 확인 화면: <http://127.0.0.1:8000/test/social-login>
+- SUPER_ADMIN 운영 콘솔: <http://127.0.0.1:8000/admin/login>
 
 `/test`로 시작하는 확인용 화면은 `.env`의 `APP_ENV`가 `local` 또는 `testing`일 때만 열립니다.
+
+### SUPER_ADMIN 계정 만들기
+
+운영 콘솔은 일반 `ADMIN` 또는 점주 계정과 분리되어 있으며, 정확히 `SUPER_ADMIN` 역할을 가진 활성 계정만 접근할 수 있습니다.
+
+```bash
+php artisan admin:create admin@example.com --name="CafeOn 시스템 관리자"
+```
+
+명령 실행 시 안전한 임시 비밀번호가 출력됩니다. 직접 비밀번호를 지정하거나 기존 관리자 비밀번호를 교체하려면 `--password` 옵션을 사용합니다.
+
+```bash
+php artisan admin:create admin@example.com --name="CafeOn 시스템 관리자" --password="새로운-안전한-비밀번호"
+```
+
+계정 생성과 권한 변경은 서버 콘솔에서만 수행하며, 운영 콘솔 내에서는 다른 `SUPER_ADMIN` 계정을 정지할 수 없습니다. 관리자 로그인과 데이터 변경은 `admin_audit_logs`에 기록됩니다.
 
 ### 서버, 큐, 로그, Vite를 한꺼번에 실행하기
 
@@ -145,7 +163,7 @@ php artisan serve --port=8000
 composer run dev
 ```
 
-이 명령은 Laravel 서버, 작업 큐, 실시간 로그, Vite 개발 서버를 동시에 실행합니다. 이 프로젝트는 `http://127.0.0.1:8000`을 기준으로 사용합니다.
+이 명령은 Laravel 서버, 작업 큐, 실시간 로그, Vite 개발 서버를 동시에 실행합니다. 이 프로젝트의 로컬 서버와 소셜 로그인 콜백 주소는 `http://127.0.0.1:8000`을 사용합니다.
 
 서버를 종료하려면 실행 중인 터미널에서 `Ctrl + C`를 누릅니다.
 
@@ -175,7 +193,7 @@ Accept: application/json
 php artisan swagger:generate-routes
 ```
 
-문서를 생성한 뒤 <http://127.0.0.1:8000/api/documentation>에 접속합니다.
+문서를 생성한 뒤 <http://127.0.0.1:8000/swagger>에 접속합니다.
 
 ## 테스트 실행하기
 
@@ -238,7 +256,6 @@ GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/auth/social/google/callback
 KAKAO_CLIENT_ID=
 KAKAO_CLIENT_SECRET=
 KAKAO_REDIRECT_URI=http://127.0.0.1:8000/auth/social/kakao/callback
-
 NAVER_CLIENT_ID=
 NAVER_CLIENT_SECRET=
 NAVER_REDIRECT_URI=http://127.0.0.1:8000/auth/social/naver/callback

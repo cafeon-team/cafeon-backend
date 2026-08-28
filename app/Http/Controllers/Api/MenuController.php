@@ -26,7 +26,6 @@ class MenuController extends Controller
         $menus = Menu::query()
             ->with('category:id,store_id,name,sort_order,is_active')
             ->where('store_id', $store->id)
-            ->where('is_available', true)
             ->when($validated['keyword'] ?? null, function (Builder $query, string $keyword) {
                 $query->where(function (Builder $query) use ($keyword) {
                     $query->where('name', 'like', "%{$keyword}%")
@@ -47,7 +46,7 @@ class MenuController extends Controller
 
     public function show(Menu $menu): JsonResponse
     {
-        abort_unless($menu->is_available && $menu->store?->is_active, 404);
+        abort_unless($menu->store?->is_active, 404);
 
         return response()->json([
             'menu' => $menu->load(['store:id,name,slug', 'category:id,store_id,name']),
